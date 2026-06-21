@@ -34,7 +34,7 @@ Plataforma open source de operações de cibersegurança ofensiva — laboratór
 ---
 
 ## 🏛️ Arquitetura de Redes
-
+```text
 ┌──────────────────────────────────────────────┐
 │                Cloudflare Tunnel             │
 │              rapsodia.th1eros.dev            │
@@ -58,7 +58,7 @@ Plataforma open source de operações de cibersegurança ofensiva — laboratór
                │In_telectus│
                │   10004   │
                └───────────┘
-
+```
 --- 
 
 ## ⚡ Instalação e Execução
