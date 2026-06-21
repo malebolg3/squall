@@ -1,20 +1,11 @@
-name: Deploy Rapsodia
+name: Deploy Squall
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Ambiente'
-        required: true
-        type: choice
-        options:
-          - staging
-          - production
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
@@ -25,20 +16,11 @@ jobs:
           username: ${{ vars.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            if [[ "${{ job.environment }}" == "production" ]]; then
-              cd /opt/rapsodia-production
-            else
-              cd ~/th1er/malebolge/Rainbow
-            fi
+            cd ~/th1er/malebolge/Rainbow
             git pull origin develop
-            pkill http-server
-            nohup npx http-server . -p 8081 -c-1 > /dev/null 2>&1 &
+            docker exec male-rainbow nginx -s reload
 
       - name: Healthcheck
         run: |
           echo "Deploy concluído."
-          if [[ "${{ job.environment }}" == "production" ]]; then
-            echo "Verifique: https://rapsodia.th1eros.com"
-          else
-            echo "Verifique: https://rapsodia.th1eros.dev"
-          fi
+          echo "Verifique: https://rapsodia.th1eros.dev"
