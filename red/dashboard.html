@@ -1,7 +1,5 @@
-<!DOCTYPE html>
-<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
-<!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
+<!-- SPDX-License-Identifier: UNLICENSED -->
+<!-- Copyright (C) 2026 Th1eros - Proprietary -->
 
 <div class="red-dashboard">
     <div class="red-topbar">
@@ -9,7 +7,7 @@
             <span class="red-logo">RED EXPLOIT</span>
             <span class="red-sub">PENETRATION TESTING FRAMEWORK</span>
         </div>
-        <div class="red-telemetry" hx-get="http://localhost:5074/api/Exploit/sessions" hx-trigger="load, every 15s" hx-swap="none">
+        <div class="red-telemetry" hx-get="/api/Exploit/sessions" hx-trigger="load, every 15s" hx-swap="none">
             <div class="tel-item"><span class="status-dot red-pulse"></span>SESSIONS: <strong class="txt-red" id="cmd-sessions">0</strong></div>
             <div class="tel-item"><span class="status-dot orange-pulse"></span>TOOLS: <strong class="txt-orange" id="cmd-tools">0</strong></div>
             <div class="tel-item"><span class="status-dot green-pulse"></span>TARGETS: <strong class="txt-green" id="cmd-target">--</strong></div>

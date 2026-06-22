@@ -1,7 +1,7 @@
 /*<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->*/
 
-const CACHE = 'rapsodia-v1';
+const CACHE = 'malebolge-v1.1';
 const URLS = [
   '/',
   '/index.html',

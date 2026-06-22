@@ -50,8 +50,8 @@
     <script src="/js/app.js"></script>
     <script>
         var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        var AUTH_BASE = isLocal ? 'http://localhost:5073' : 'https://' + window.location.hostname + '/api';
-        var AUTH_BASE_LOGIN = isLocal ? 'http://localhost:5073' : 'https://rapsodia.th1eros.dev/api';
+        var AUTH_BASE = isLocal ? 'http://localhost:10001/api' : 'https://' + window.location.hostname + '/api';
+        var AUTH_BASE_LOGIN = isLocal ? 'http://localhost:10001/api' : 'https://rapsodia.th1eros.dev/api';
         
         function escapeHtml(text) { var div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
         function updateHeaderVisibility() { var nav = document.getElementById('nav-tabs'); var exitBtn = document.getElementById('btn-exit'); var hasToken = localStorage.getItem('malebolge_token'); if (nav) { nav.classList.toggle('visible', !!hasToken); } if (exitBtn) { exitBtn.classList.toggle('visible', !!hasToken); } }
@@ -90,7 +90,7 @@
             fetch(AUTH_BASE_LOGIN + '/Auth/authorize', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: username, password: password, service: 'blue', scope: 'admin', expiresIn: '8h'})
+                body: JSON.stringify({username: username, password: password})
             })
             .then(r => r.json())
             .then(result => {

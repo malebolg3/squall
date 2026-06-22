@@ -1,7 +1,5 @@
-<!DOCTYPE html>
-<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
-<!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
+<!-- SPDX-License-Identifier: UNLICENSED -->
+<!-- Copyright (C) 2026 Th1eros - Proprietary -->
 
 <div class="silver-dashboard">
     <div class="silver-topbar">
@@ -9,7 +7,7 @@
             <span class="silver-logo">SILVER BULLET</span>
             <span class="silver-sub">AI ORCHESTRATION ENGINE</span>
         </div>
-        <div class="silver-telemetry" hx-get="http://localhost:5076/api/Orchestration/status" hx-trigger="load, every 20s" hx-swap="none">
+        <div class="silver-telemetry" hx-get="/api/Orchestration/status" hx-trigger="load, every 20s" hx-swap="none">
             <div class="tel-item"><span class="status-dot green-pulse"></span>OBSIDIAN: <strong class="txt-green" id="obsidian-status">--</strong></div>
             <div class="tel-item"><span class="status-dot blue-pulse"></span>BLUE: <strong class="txt-blue" id="agt-blue">--</strong></div>
             <div class="tel-item"><span class="status-dot red-pulse"></span>RED: <strong class="txt-red" id="agt-red">--</strong></div>
@@ -40,13 +38,13 @@
     <div class="silver-main-grid">
         <div class="silver-card">
             <div class="card-header"><h3>AGENT ORCHESTRATION</h3><span class="panel-tag">LIVE</span></div>
-            <div class="silver-agents" id="agents-list" hx-get="http://localhost:5076/api/Orchestration/status" hx-trigger="load, every 15s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
+            <div class="silver-agents" id="agents-list" hx-get="/api/Orchestration/status" hx-trigger="load, every 15s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
                 <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading agents...</div>
             </div>
         </div>
         <div class="silver-card">
             <div class="card-header"><h3>ACTIVE LABS</h3><span class="panel-tag">VIOLET</span></div>
-            <div id="active-labs" hx-get="http://localhost:5076/api/Orchestration/agents/violet/labs" hx-trigger="load, every 30s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
+            <div id="active-labs" hx-get="/api/Orchestration/agents/violet/labs" hx-trigger="load, every 30s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
                 <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading labs...</div>
             </div>
         </div>
@@ -85,7 +83,7 @@
 
 <script>
 (function() {
-    var API = window.__API_SILVER__ || 'http://localhost:5076';
+    var API = window.__API_SILVER__ || (window.location.hostname === 'localhost' ? 'http://localhost:10004' : '');
     function token() { return localStorage.getItem('abitat_token') || ''; }
     function headers() { return { 'Authorization': 'Bearer ' + token(), 'Content-Type': 'application/json' }; }
     function authHeaders() { return { 'Authorization': 'Bearer ' + token() }; }
@@ -96,7 +94,7 @@
         if (!cmd) return;
         var chat = document.getElementById('chat-box');
         chat.innerHTML += '<div class="chat-msg user">' + cmd + '</div>';
-        fetch(API + '/api/Orchestration/ai/analyze', { method:'POST', headers:headers(), body:JSON.stringify({Context:cmd, Data:cmd}) })
+        fetch((API || '') + '/api/Orchestration/ai/analyze', { method:'POST', headers:headers(), body:JSON.stringify({Context:cmd, Data:cmd}) })
             .then(function(r) { return r.json(); })
             .then(function(d) { chat.innerHTML += '<div class="chat-msg system">' + (d.analysis||'Done.') + '</div>'; chat.scrollTop=chat.scrollHeight; })
             .catch(function() { chat.innerHTML += '<div class="chat-msg system">Connection failed.</div>'; });
@@ -116,7 +114,7 @@
         if (!q) return;
         var container = document.getElementById('obsidian-results');
         container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">Searching...</div>';
-        fetch(API + '/api/Obsidian/vaults/' + vault + '/search?query=' + encodeURIComponent(q), { headers:authHeaders() })
+        fetch((API || '') + '/api/Obsidian/vaults/' + vault + '/search?query=' + encodeURIComponent(q), { headers:authHeaders() })
             .then(function(r) { return r.json(); })
             .then(function(d) {
                 if (d.notes && d.notes.length>0) {
@@ -150,7 +148,7 @@
                 var labs = d.labs || [];
                 if (labs.length>0) {
                     evt.detail.target.innerHTML = labs.map(function(l) {
-                        return '<div class="lab-item"><span class="lab-name">'+(l.name||l.labId)+'</span><span class="lab-status active">'+(l.status||'ACTIVE')+'</span><button class="action-btn btn-danger-light" hx-delete="'+API+'/api/Orchestration/agents/violet/labs/'+l.labId+'" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}\' hx-target="#active-labs" hx-swap="innerHTML">DESTROY</button></div>';
+                        return '<div class="lab-item"><span class="lab-name">'+(l.name||l.labId)+'</span><span class="lab-status active">'+(l.status||'ACTIVE')+'</span><button class="action-btn btn-danger-light" hx-delete="/api/Orchestration/agents/violet/labs/'+l.labId+'" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}\' hx-target="#active-labs" hx-swap="innerHTML">DESTROY</button></div>';
                     }).join('');
                     htmx.process(evt.detail.target);
                 } else { evt.detail.target.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">No active labs.</div>'; }

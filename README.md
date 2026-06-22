@@ -34,32 +34,31 @@ Plataforma open source de operações de cibersegurança ofensiva — laboratór
 ---
 
 ## 🏛️ Arquitetura de Redes
-```text
-                                                +--------------------------------------------+
-                                                |              Cloudflare Tunnel             |
-                                                |            rapsodia.th1eros.dev            |
-                                                +--------------------+-----------------------+
-                                                                     |
-                                                               +-----v-----+
-                                                               |   Nginx   | (Porta 8081)
-                                                               |  Frontend |
-                                                               +-----+-----+
-                                                                     |
-                                                       +-------------+-------------+
-                                                       |             |             |
-                                                 +-----v-----+ +-----v-----+ +-----v-----+
-                                                 |  Gerent   | |   Push    | |   Limbo   |
-                                                 |   10001   | |   10002   | |   10003   |
-                                                 +-----+-----+ +-----+-----+ +-----+-----+
-                                                       |             |             |
-                                                       +-------------+-------------+
-                                                                     |
-                                                               +-----v-----+
-                                                               |In_telectus|
-                                                               |   10004   |
-                                                               +-----------+
-```
---- 
+
+┌──────────────────────────────────────────────┐
+│                Cloudflare Tunnel             │
+│              rapsodia.th1eros.dev            │
+└────────────────────┬─────────────────────────┘
+                     │
+               ┌─────▼─────┐
+               │   Nginx   │ (Porta 8081)
+               │  Frontend │
+               └─────┬─────┘
+                     │
+       ┌─────────────┼─────────────┐
+       │             │             │
+ ┌─────▼─────┐ ┌─────▼─────┐ ┌─────▼─────┐
+ │  Gerent   │ │   Push    │ │   Limbo   │
+ │   10001   │ │   10002   │ │   10003   │
+ └─────┬─────┘ └─────┬─────┘ └─────┬─────┘
+       │             │             │
+       └─────────────┼─────────────┘
+                     │
+               ┌─────▼─────┐
+               │In_telectus│
+               │   10004   │
+               └───────────┘
+
 
 ## ⚡ Instalação e Execução
 
@@ -79,6 +78,8 @@ docker compose -p malebolge up -d
 
 Acesso Local: https://rapsodia.th1eros.dev (via túnel configurado) ou através do gateway do Nginx na porta 8081.
 
+---
+
 ## 🛠️Funcionalidades Principais
 
 | Módulo | Recursos Operacionais Disponíveis |
@@ -87,3 +88,5 @@ Acesso Local: https://rapsodia.th1eros.dev (via túnel configurado) ou através 
 | **Push (Red)** | - Mapeamento multi-target com persistência via localStorage<br>- Execução integrada de ferramentas (Nmap, Metasploit, Hydra)<br>- Modais customizados para parametrização de alvos e payloads<br>- Playbooks automatizados de transição sequencial: Scan -> Exploit |
 | **Limbo (Violet)** | - Provisionamento dinâmico e efêmero de laboratórios isolados<br>- Mecanismo de snapshotting com exportação e importação de configs<br>- Deploy declarativo de cenários via arquivos JSON remoto no GitHub<br>- Módulos nativos de Honeypots ativos e simulações de Cyber Range |
 | **In_telectus (Silver)** | - Orquestração comportamental distribuída via Orleans Multi-Agentes<br>- Workflows sequenciais: Scan, Pentest, Full Attack e AI Analysis<br>- Sincronização viva de conhecimento com Obsidian Knowledge Vault<br>- Console interativo em tempo real (Chat com IA) para análise |
+
+```bash
