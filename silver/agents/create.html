@@ -1,130 +1,55 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
 
-<div class="silver-card" style="max-width:100%;">
-    <div class="card-header">
-        <h3>CREATE LAB / SANDBOX</h3>
-        <span class="panel-tag" style="background:rgba(168,157,212,0.1);color:var(--accent-violet);border-color:rgba(168,157,212,0.2);">VIOLET</span>
+<div class="silver-dashboard">
+    <div class="silver-topbar">
+        <span class="silver-logo">CREATE AGENT</span>
+        <div class="silver-telemetry">
+            <button class="action-btn" hx-get="/silver/agents/list.html" hx-target="#panel-silver" hx-swap="innerHTML">LIST</button>
+        </div>
     </div>
 
-    <div class="create-layout">
-        <div class="create-left">
-            <div class="form-section">
-                <div class="section-title">LAB CONFIGURATION</div>
-                <div class="form-group"><label>LAB NAME</label><input type="text" id="lab-name" class="form-control" placeholder="MyLab" autocomplete="off"></div>
-                <div class="form-group"><label>TYPE</label><select id="lab-type" class="form-control" onchange="updateLabForm()">
-                    <option value="sandbox">SANDBOX</option>
-                    <option value="honeypot">HONEYPOT</option>
-                    <option value="soc">SOC</option>
-                    <option value="cyber-range">CYBER RANGE</option>
-                </select></div>
-                <div class="form-group"><label>IMAGE</label><input type="text" id="lab-image" class="form-control" value="kalilinux/kali-rolling:latest"></div>
-                <div class="form-group"><label>TTL (MINUTES)</label><input type="number" id="lab-ttl" class="form-control" value="240" min="10" max="1440"></div>
-            </div>
-        </div>
-        <div class="create-right">
-            <div class="form-section" id="sandbox-section">
-                <div class="section-title">SANDBOX TOOLS</div>
-                <div class="tools-checkbox-grid">
-                    <label class="checkbox-item"><input type="checkbox" value="nmap" checked> NMAP</label>
-                    <label class="checkbox-item"><input type="checkbox" value="gobuster" checked> GOBUSTER</label>
-                    <label class="checkbox-item"><input type="checkbox" value="nikto" checked> NIKTO</label>
-                    <label class="checkbox-item"><input type="checkbox" value="sqlmap"> SQLMAP</label>
-                    <label class="checkbox-item"><input type="checkbox" value="hydra"> HYDRA</label>
-                    <label class="checkbox-item"><input type="checkbox" value="wfuzz"> WFUZZ</label>
-                    <label class="checkbox-item"><input type="checkbox" value="metasploit"> METASPLOIT</label>
-                    <label class="checkbox-item"><input type="checkbox" value="impacket"> IMPACKET</label>
-                    <label class="checkbox-item"><input type="checkbox" value="bloodhound"> BLOODHOUND</label>
-                    <label class="checkbox-item"><input type="checkbox" value="hashcat"> HASHCAT</label>
+    <div class="silver-main-grid">
+        <div class="silver-card">
+            <div class="card-header"><h3>NEW AGENT</h3></div>
+            <form id="agent-create-form">
+                <div class="form-group"><label>AGENT TYPE</label>
+                    <select name="agentType" class="form-control">
+                        <option value="blue">Blue (Defense)</option>
+                        <option value="red">Red (Offense)</option>
+                        <option value="violet">Violet (Labs)</option>
+                        <option value="silver">Silver (AI)</option>
+                    </select>
                 </div>
-            </div>
-            <div class="form-section" id="honeypot-section" style="display:none;">
-                <div class="section-title">HONEYPOT TYPE</div>
-                <select id="honeypot-type" class="form-control">
-                    <option value="ssh">SSH</option>
-                    <option value="http">HTTP</option>
-                    <option value="ftp">FTP</option>
-                    <option value="smb">SMB</option>
-                    <option value="rdp">RDP</option>
-                    <option value="mysql">MySQL</option>
-                </select>
-            </div>
-            <div class="form-section" id="cyber-section" style="display:none;">
-                <div class="section-title">SCENARIO</div>
-                <select id="cyber-scenario" class="form-control">
-                    <option value="ransomware">RANSOMWARE</option>
-                    <option value="phishing">PHISHING</option>
-                    <option value="ddos">DDOS</option>
-                    <option value="lateral">LATERAL MOVEMENT</option>
-                    <option value="exfiltration">DATA EXFILTRATION</option>
-                </select>
-            </div>
+                <div class="form-group"><label>EXPERTISE</label><input type="text" name="expertise" class="form-control" value="security-analyst"></div>
+                <div class="form-group"><label>OWNER ID</label><input type="text" name="ownerId" class="form-control" value="admin"></div>
+                <button type="submit" class="action-btn btn-primary" style="width:100%;">CREATE</button>
+            </form>
         </div>
     </div>
-
-    <div class="flex-row flex-end" style="margin-top:16px;">
-        <button type="button" class="action-btn btn-secondary" hx-get="/silver/dashboard.html" hx-target="#panel-silver" hx-swap="innerHTML">CANCEL</button>
-        <button class="action-btn btn-primary" style="background:var(--accent-violet);width:auto;" onclick="createLab()">CREATE LAB</button>
-    </div>
-
-    <div id="lab-result" style="margin-top:12px;font-size:10px;max-height:200px;overflow-y:auto;"></div>
 </div>
 
 <script>
 (function() {
-    var API = window.__API_SILVER__ || 'http://localhost:5076';
-    function token() { return localStorage.getItem('abitat_token')||''; }
-    function headers() { return { 'Authorization':'Bearer '+token(), 'Content-Type':'application/json' }; }
+    var API = window.__API_SILVER__ || (window.location.hostname === 'localhost' ? 'http://localhost:10004' : '');
+    var token = localStorage.getItem('abitat_token') || '';
 
-    window.updateLabForm = function() {
-        var type = document.getElementById('lab-type').value;
-        document.getElementById('sandbox-section').style.display = type==='sandbox' ? 'block' : 'none';
-        document.getElementById('honeypot-section').style.display = type==='honeypot' ? 'block' : 'none';
-        document.getElementById('cyber-section').style.display = type==='cyber-range' ? 'block' : 'none';
-    };
+    document.getElementById('agent-create-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var form = this;
+        var data = new FormData(form);
+        var json = {};
+        data.forEach(function(v, k) { json[k] = v; });
 
-    window.createLab = function() {
-        var type = document.getElementById('lab-type').value;
-        var name = document.getElementById('lab-name').value.trim();
-        var image = document.getElementById('lab-image').value.trim();
-        var ttl = parseInt(document.getElementById('lab-ttl').value);
-        var result = document.getElementById('lab-result');
-        if (!name) { result.innerHTML = '<pre style="color:var(--accent-red);">ERROR: Lab name is required</pre>'; return; }
-
-        var url = API + '/api/Orchestration/agents/violet/';
-        var body = { Name: name, TtlMinutes: ttl };
-
-        if (type === 'sandbox') {
-            var tools = [];
-            document.querySelectorAll('#sandbox-section input:checked').forEach(function(cb) { tools.push(cb.value); });
-            url += 'sandbox';
-            body.Image = image;
-            body.Tools = tools;
-        } else if (type === 'honeypot') {
-            url += 'honeypot';
-            body.HoneypotType = document.getElementById('honeypot-type').value;
-        } else if (type === 'soc') {
-            url += 'soc';
-        } else if (type === 'cyber-range') {
-            url += 'cyber-range';
-            body.Scenario = document.getElementById('cyber-scenario').value;
-        }
-
-        result.innerHTML = '<span style="color:var(--accent-orange);">Creating '+type+' lab...</span>';
-        fetch(url, { method:'POST', headers:headers(), body:JSON.stringify(body) })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                if (d.labId) {
-                    result.innerHTML = '<pre style="color:var(--accent-green);">LAB CREATED\nID: '+d.labId+'\nTYPE: '+type.toUpperCase()+'\nNAME: '+name+'\nTTL: '+ttl+' minutes</pre>';
-                    setTimeout(function() { htmx.ajax('GET', '/silver/dashboard.html', { target:'#panel-silver', swap:'innerHTML' }); }, 1500);
-                } else { result.innerHTML = '<pre style="color:var(--accent-red);">FAILED\n'+(d.message||'Unknown error')+'</pre>'; }
-            })
-            .catch(function() { result.innerHTML = '<pre style="color:var(--accent-red);">CONNECTION FAILED</pre>'; });
-    };
-
-    var savedTarget = localStorage.getItem('red_target');
-    if (savedTarget) { document.getElementById('lab-name').value = savedTarget.replace(/\./g,'-')+'-lab'; }
+        fetch('/api/Orchestration/agents/' + json.agentType + '/create', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(json)
+        }).then(function(r) { return r.text(); })
+          .then(function(id) {
+              alert('Agent created: ' + id);
+              htmx.ajax('GET', '/silver/agents/list.html', {target: '#panel-silver', swap: 'innerHTML'});
+          });
+    });
 })();
 </script>

@@ -1,5 +1,5 @@
-<!-- SPDX-License-Identifier: UNLICENSED -->
-<!-- Copyright (C) 2026 Th1eros - Proprietary -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (C) 2026 Th1eros -->
 
 <div class="red-dashboard">
     <div class="red-topbar">
@@ -7,7 +7,7 @@
             <span class="red-logo">RED EXPLOIT</span>
             <span class="red-sub">PENETRATION TESTING FRAMEWORK</span>
         </div>
-        <div class="red-telemetry" hx-get="/api/Exploit/sessions" hx-trigger="load, every 15s" hx-swap="none">
+        <div class="red-telemetry">
             <div class="tel-item"><span class="status-dot red-pulse"></span>SESSIONS: <strong class="txt-red" id="cmd-sessions">0</strong></div>
             <div class="tel-item"><span class="status-dot orange-pulse"></span>TOOLS: <strong class="txt-orange" id="cmd-tools">0</strong></div>
             <div class="tel-item"><span class="status-dot green-pulse"></span>TARGETS: <strong class="txt-green" id="cmd-target">--</strong></div>
@@ -19,9 +19,9 @@
                 <div class="section-title">TARGETS</div>
                 <div class="target-actions">
                     <button class="quick-btn accent" onclick="clearTargets()">CLEAR ALL</button>
-                    <button class="quick-btn" hx-get="/red/scans/list.html" hx-target="#panel-red" hx-swap="innerHTML">SCANS</button>
-                    <button class="quick-btn" hx-get="/red/exploits/list.html" hx-target="#panel-red" hx-swap="innerHTML">EXPLOITS</button>
-                    <button class="quick-btn" hx-get="/red/monitor.html" hx-target="#panel-red" hx-swap="innerHTML">MONITOR</button>
+                    <button class="quick-btn" onclick="location.href='/red/scans/list.html'">SCANS</button>
+                    <button class="quick-btn" onclick="location.href='/red/exploits/list.html'">EXPLOITS</button>
+                    <button class="quick-btn" onclick="location.href='/red/monitor.html'">MONITOR</button>
                 </div>
             </div>
             <div class="target-input-row">
@@ -141,18 +141,14 @@
             .then(function(html) {
                 container.innerHTML = html;
                 var targetInput = document.getElementById('tool-target');
-                if (targetInput) {
-                    targetInput.value = selectedTarget;
-                }
+                if (targetInput) targetInput.value = selectedTarget;
                 var scripts = container.querySelectorAll('script');
                 scripts.forEach(function(script) {
                     var newScript = document.createElement('script');
                     newScript.textContent = script.textContent;
                     document.body.appendChild(newScript).parentNode.removeChild(newScript);
                 });
-                if (typeof updatePreview === 'function') {
-                    updatePreview();
-                }
+                if (typeof updatePreview === 'function') updatePreview();
             })
             .catch(function() {
                 container.innerHTML = '<div class="modal-loading" style="color:var(--accent-red);">Failed to load ' + tool.toUpperCase() + '</div>';

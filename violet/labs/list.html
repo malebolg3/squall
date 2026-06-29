@@ -1,77 +1,55 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
 
-<div class="violet-card">
-    <div class="card-header">
-        <h3>LABORATORIES</h3>
-        <span class="panel-tag">VIOLET LAB</span>
-    </div>
-
-    <div class="violet-stats-strip">
-        <div class="strip-card"><span class="strip-label">TOTAL</span><span class="strip-value" id="stat-total">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-violet);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">RUNNING</span><span class="strip-value" id="stat-running">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-green);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">STOPPED</span><span class="strip-value" id="stat-stopped">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-red);"></div></div></div>
-        <div class="strip-card" hx-get="/violet/labs/create.html" hx-target="#panel-violet" hx-swap="innerHTML">
-            <span class="strip-label">NEW LAB</span><span class="strip-value">+</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-green);"></div></div>
+<div class="violet-dashboard">
+    <div class="violet-topbar">
+        <span class="violet-logo">VIOLET LABS</span>
+        <div class="violet-telemetry">
+            <button class="action-btn" hx-get="/violet/monitor.html" hx-target="#panel-violet" hx-swap="innerHTML">MONITOR</button>
+            <button class="action-btn" hx-get="/violet/labs/create.html" hx-target="#panel-violet" hx-swap="innerHTML">CREATE</button>
         </div>
     </div>
 
     <table class="violet-table">
-        <thead><tr><th>ID</th><th>NAME</th><th>IMAGE</th><th>IP</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
-        <tbody id="labs-list" hx-get="http://localhost:5075/api/Lab" hx-trigger="load, labUpdated from:body" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="none">
-            <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">Loading labs...</td></tr>
+        <thead>
+            <tr><th>NAME</th><th>IMAGE</th><th>STATUS</th><th>IP</th><th>ACTIONS</th></tr>
+        </thead>
+        <tbody id="labs-list" hx-get="/api/Lab" hx-trigger="load, labUpdated from:body" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="none">
+            <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-muted);">Loading labs...</td></tr>
         </tbody>
     </table>
-
-    <div id="lab-detail-panel" style="margin-top:16px;"></div>
 </div>
 
 <script>
+(function() {
+    var token = localStorage.getItem('abitat_token') || '';
     document.body.addEventListener('htmx:afterRequest', function(evt) {
-        if (evt.detail.target.id === 'labs-list') {
-            var resp = JSON.parse(evt.detail.xhr.responseText);
-            var list = document.getElementById('labs-list');
-            if (resp.success && resp.data) {
-                document.getElementById('stat-total').textContent = resp.data.length;
-                document.getElementById('stat-running').textContent = resp.data.filter(function(l){ return l.status==='running'; }).length;
-                document.getElementById('stat-stopped').textContent = resp.data.filter(function(l){ return l.status!=='running'; }).length;
-                if (resp.data.length > 0) {
-                    list.innerHTML = resp.data.map(function(l) {
-                        var isRunning = l.status === 'running';
-                        var id = l.containerId || l.id || 'N/A';
-                        return '<tr>' +
-                            '<td><code>' + id + '</code></td>' +
-                            '<td>' + (l.name || 'N/A') + '</td>' +
-                            '<td style="font-size:10px;">' + (l.image || 'N/A') + '</td>' +
-                            '<td><code>' + (l.ip || '--') + '</code></td>' +
-                            '<td><span class="status-dot" style="background:' + (isRunning ? 'var(--accent-green)' : 'var(--text-muted)') + ';box-shadow:0 0 6px ' + (isRunning ? 'var(--accent-green)' : 'transparent') + ';"></span> ' + (l.status || 'unknown').toUpperCase() + '</td>' +
-                            '<td>' +
-                                '<button class="action-btn btn-success-light" hx-post="http://localhost:5075/api/Lab/' + id + '/start" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}\' hx-target="#labs-list" hx-swap="none">START</button> ' +
-                                '<button class="action-btn btn-warning-light" hx-post="http://localhost:5075/api/Lab/' + id + '/stop" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}\' hx-target="#labs-list" hx-swap="none">STOP</button> ' +
-                                '<button class="action-btn" hx-post="http://localhost:5075/api/Lab/' + id + '/exec" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token"),"Content-Type":"application/json"}\' hx-vals=\'{"command":"id"}\' hx-target="#lab-detail-panel">EXEC</button> ' +
-                                '<button class="action-btn btn-danger-light" hx-delete="http://localhost:5075/api/Lab/' + id + '" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}\' hx-confirm="Remove this lab?" hx-target="#labs-list" hx-swap="none">DEL</button>' +
-                            '</td></tr>';
-                    }).join('');
-                    htmx.process(list);
-                } else {
-                    list.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">No labs running.</td></tr>';
-                }
-            }
-        }
-        if (evt.detail.target.id === 'lab-detail-panel' && evt.detail.xhr.status === 200) {
-            var resp = JSON.parse(evt.detail.xhr.responseText);
-            if (resp.success && resp.data) {
-                document.getElementById('lab-detail-panel').innerHTML = 
-                    '<div class="violet-card" style="margin-top:14px;background:var(--bg-main);border-color:var(--accent-violet);">' +
-                    '<h4 style="color:var(--text-white);margin:0 0 10px 0;">EXECUTION RESULT</h4>' +
-                    '<pre style="font-size:10px;color:var(--text-main);overflow-x:auto;">' + JSON.stringify(resp.data, null, 2) + '</pre>' +
-                    '</div>';
-            }
-        }
-        if (evt.detail.requestConfig.method !== 'GET' && evt.detail.xhr.status === 200) {
-            htmx.trigger('#labs-list', 'labUpdated');
-        }
+        if (evt.detail.target.id === 'labs-list') return;
     });
+    document.body.addEventListener('labUpdated', function() {
+        var tbody = document.getElementById('labs-list');
+        if (!tbody) return;
+        fetch('/api/Lab', { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(function(r) { return r.json(); })
+            .then(function(labs) {
+                if (!Array.isArray(labs)) labs = [];
+                tbody.innerHTML = labs.map(function(l) {
+                    var id = l.id || l.name || '';
+                    return '<tr>' +
+                        '<td>' + (l.name || id) + '</td>' +
+                        '<td>' + (l.image || 'kali') + '</td>' +
+                        '<td><span class="status-dot ' + (l.status === 'online' ? 'status-online' : 'status-offline') + '"></span> ' + (l.status || 'offline') + '</td>' +
+                        '<td>' + (l.ip || '0.0.0.0') + '</td>' +
+                        '<td>' +
+                            '<button class="action-btn btn-success-light" hx-post="/api/Lab/' + id + '/start" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}\' hx-target="#labs-list" hx-swap="none">START</button> ' +
+                            '<button class="action-btn btn-warning-light" hx-post="/api/Lab/' + id + '/stop" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}\' hx-target="#labs-list" hx-swap="none">STOP</button> ' +
+                            '<button class="action-btn" hx-post="/api/Lab/' + id + '/exec" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token"),"Content-Type":"application/json"}\' hx-vals=\'{"command":"id"}\' hx-target="#lab-detail-panel">EXEC</button> ' +
+                            '<button class="action-btn btn-danger-light" hx-delete="/api/Lab/' + id + '" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}\' hx-confirm="Remove this lab?" hx-target="#labs-list" hx-swap="none">DEL</button>' +
+                        '</td>' +
+                        '</tr>';
+                }).join('');
+                htmx.process(tbody);
+            });
+    });
+})();
 </script>

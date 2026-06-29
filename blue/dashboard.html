@@ -1,5 +1,5 @@
-<!-- SPDX-License-Identifier: UNLICENSED -->
-<!-- Copyright (C) 2026 Th1eros - Proprietary -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (C) 2026 Th1eros -->
 
 <div class="blue-dashboard">
     <div class="blue-topbar">
@@ -15,32 +15,58 @@
             <div class="tel-item">EPS: <strong class="txt-amber">2.3k</strong></div>
         </div>
     </div>
+    
     <div class="blue-stats-strip">
-        <div class="strip-card" hx-get="/blue/assets/list.html" hx-target="#blue-content" hx-swap="innerHTML"><span class="strip-label">ASSETS</span><span class="strip-value" id="stat-assets">--</span><div class="progress-bar"><div class="progress-fill" style="width:90%;background:var(--accent-blue);"></div></div></div>
-        <div class="strip-card" hx-get="/blue/vulns/list.html" hx-target="#blue-content" hx-swap="innerHTML"><span class="strip-label">VULNS</span><span class="strip-value" id="stat-vulns">--</span><div class="progress-bar"><div class="progress-fill" style="width:35%;background:var(--accent-red);"></div></div></div>
-        <div class="strip-card" hx-get="/blue/incidents/list.html" hx-target="#blue-content" hx-swap="innerHTML"><span class="strip-label">INCIDENTS</span><span class="strip-value" id="stat-incidents">--</span><div class="progress-bar"><div class="progress-fill" style="width:25%;background:var(--accent-orange);"></div></div></div>
-        <div class="strip-card" hx-get="/blue/graph.html" hx-target="#blue-content" hx-swap="innerHTML"><span class="strip-label">GRAPH</span><span class="strip-value">NET</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-violet);"></div></div></div>
+        <div class="strip-card">
+            <span class="strip-label">ASSETS</span>
+            <span class="strip-value" id="stat-assets">--</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:90%;background:var(--accent-blue);"></div></div>
+        </div>
+        <div class="strip-card">
+            <span class="strip-label">VULNS</span>
+            <span class="strip-value" id="stat-vulns">--</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:35%;background:var(--accent-red);"></div></div>
+        </div>
+        <div class="strip-card">
+            <span class="strip-label">INCIDENTS</span>
+            <span class="strip-value" id="stat-incidents">--</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:25%;background:var(--accent-orange);"></div></div>
+        </div>
+        <div class="strip-card">
+            <span class="strip-label">GRAPH</span>
+            <span class="strip-value">NET</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-violet);"></div></div>
+        </div>
     </div>
+
     <div class="blue-monitor-grid" id="blue-content">
         <div class="monitor-row" id="row-top">
             <div class="monitor-quad mon-resizable" id="quad-violet" style="flex:1;">
                 <div class="quad-handle quad-handle-right" data-quad="quad-violet" data-dir="h"></div>
                 <div class="quad-handle quad-handle-bottom" data-quad="quad-violet" data-dir="v"></div>
                 <div class="quad-handle quad-handle-corner" data-quad="quad-violet" data-dir="b"></div>
-                <div class="quad-content" id="content-violet" hx-get="/violet/monitor.html" hx-trigger="load" hx-swap="innerHTML swap:0.3s"><div style="text-align:center;padding:20px;color:var(--text-muted);">Loading Violet...</div></div>
+                <div class="quad-content" id="content-violet">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);">Violet monitor</div>
+                </div>
             </div>
             <div class="monitor-quad mon-resizable" id="quad-red" style="flex:1;">
                 <div class="quad-handle quad-handle-bottom" data-quad="quad-red" data-dir="v"></div>
-                <div class="quad-content" id="content-red" hx-get="/red/monitor.html" hx-trigger="load" hx-swap="innerHTML swap:0.3s"><div style="text-align:center;padding:20px;color:var(--text-muted);">Loading Red...</div></div>
+                <div class="quad-content" id="content-red">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);">Red monitor</div>
+                </div>
             </div>
         </div>
         <div class="monitor-row" id="row-bottom">
             <div class="monitor-quad mon-resizable" id="quad-silver" style="flex:1;">
                 <div class="quad-handle quad-handle-right" data-quad="quad-silver" data-dir="h"></div>
-                <div class="quad-content" id="content-silver" hx-get="/silver/monitor.html" hx-trigger="load" hx-swap="innerHTML swap:0.3s"><div style="text-align:center;padding:20px;color:var(--text-muted);">Loading Silver...</div></div>
+                <div class="quad-content" id="content-silver">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);">Silver monitor</div>
+                </div>
             </div>
             <div class="monitor-quad mon-resizable" id="quad-domains" style="flex:1;">
-                <div class="quad-content" id="content-domains" hx-get="/blue/domains/monitor.html" hx-trigger="load" hx-swap="innerHTML swap:0.3s"><div style="text-align:center;padding:20px;color:var(--text-muted);">Loading Domains...</div></div>
+                <div class="quad-content" id="content-domains">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);">Domains monitor</div>
+                </div>
             </div>
         </div>
         <div class="row-handle" id="row-handle"></div>
@@ -49,47 +75,138 @@
 </div>
 
 <script>
-(function() {
-    var token = localStorage.getItem('abitat_token') || '';
-    var headers = { 'Authorization': 'Bearer ' + token };
-    var AUTH_BASE = window.location.hostname === 'localhost' ? 'http://localhost:10001/api' : '/api';
-    fetch(AUTH_BASE + '/Dashboard/summary', { headers: headers })
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-            if (d.success && d.data) {
-                document.getElementById('stat-assets').textContent = d.data.totalAssets || '0';
-                document.getElementById('stat-vulns').textContent = d.data.totalVulns || '0';
-                document.getElementById('stat-incidents').textContent = d.data.activeIncidents || '0';
-                document.getElementById('agents-online').textContent = d.data.activeAgents || '0';
-                document.getElementById('labs-running').textContent = d.data.activeLabs || '0';
-                document.getElementById('scans-active').textContent = d.data.activeScans || '0';
+(function () {
+    'use strict';
+
+    const TOKEN_KEY = 'malebolge_token';
+    const CSRF_HEADER = 'X-CSRF-Token';
+    const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    window.API = Object.freeze({
+        blue: isDev ? 'http://localhost:10001/api' : '/api',
+        red: isDev ? 'http://localhost:10002/api' : '/api',
+        violet: isDev ? 'http://localhost:10003/api' : '/api',
+        silver: isDev ? 'http://localhost:10004/api' : '/api'
+    });
+
+    window.api = {
+        token: () => localStorage.getItem(TOKEN_KEY),
+
+        headers() {
+            const token = this.token();
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            return {
+                'Authorization': token ? `Bearer ${token}` : '',
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                ...(csrf && { [CSRF_HEADER]: csrf })
+            };
+        },
+
+        async _fetch(url, options) {
+            try {
+                const res = await fetch(url, options);
+                if (res.status === 401) {
+                    window.logout();
+                    throw new Error('SIEM Unauthenticated - Session Terminated');
+                }
+                if (!res.ok) throw new Error(`SIEM Threat API HTTP ${res.status}`);
+                return res.status === 204 ? null : await res.json();
+            } catch (err) {
+                console.error(`[SIEM-SEC-ERR] ${err.message}`);
+                throw err;
             }
-        })
-        .catch(function() {
-            document.getElementById('stat-assets').textContent = '142';
-            document.getElementById('stat-vulns').textContent = '12';
-            document.getElementById('stat-incidents').textContent = '3';
-        });
-    var overlay = document.getElementById('resize-overlay');
-    var activeHandle = null, activeDir = null, startX = 0, startY = 0, startFlexH = [], startFlexV = [];
-    document.querySelectorAll('.quad-handle').forEach(function(handle) {
-        handle.addEventListener('mousedown', function(e) {
-            e.preventDefault(); activeHandle = handle; activeDir = handle.getAttribute('data-dir'); startX = e.clientX; startY = e.clientY;
-            if (activeDir === 'h') { overlay.className = 'resize-overlay active-h'; var row = handle.closest('.monitor-row'); var quads = Array.from(row.querySelectorAll('.mon-resizable')); startFlexH = quads.map(function(q) { return parseFloat(q.style.flex) || 1; }); }
-            else if (activeDir === 'v') { overlay.className = 'resize-overlay active-v'; var rows = document.querySelectorAll('.monitor-row'); startFlexV = Array.from(rows).map(function(r) { return parseFloat(r.style.flex) || 1; }); }
-            else if (activeDir === 'b') { overlay.className = 'resize-overlay active-b'; var rowH = handle.closest('.monitor-row'); var quadsH = Array.from(rowH.querySelectorAll('.mon-resizable')); startFlexH = quadsH.map(function(q) { return parseFloat(q.style.flex) || 1; }); var rowsV = document.querySelectorAll('.monitor-row'); startFlexV = Array.from(rowsV).map(function(r) { return parseFloat(r.style.flex) || 1; }); }
-            handle.classList.add('active'); document.body.style.userSelect = 'none';
-        });
+        },
+
+        save(service, type, id, data) {
+            const sanitizeId = id ? String(id).replace(/[^\w-]/g, '') : '';
+            const endpoint = `${window.API[service]}/${type}${sanitizeId ? '/' + sanitizeId : ''}`;
+            return this._fetch(endpoint, {
+                method: id ? 'PUT' : 'POST',
+                headers: this.headers(),
+                body: JSON.stringify(data)
+            });
+        },
+
+        del(service, type, id) {
+            const sanitizeId = String(id).replace(/[^\w-]/g, '');
+            return this._fetch(`${window.API[service]}/${type}/${sanitizeId}`, {
+                method: 'DELETE',
+                headers: this.headers()
+            });
+        },
+
+        get(service, type, id) {
+            const sanitizeId = id ? String(id).replace(/[^\w-]/g, '') : '';
+            return this._fetch(`${window.API[service]}/${type}${sanitizeId ? '/' + sanitizeId : ''}`, {
+                headers: this.headers()
+            });
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.api.token()) {
+            const panel = document.getElementById('panel-blue');
+            if (panel) panel.style.display = 'block';
+
+            setTimeout(() => {
+                const scroll = document.getElementById('main-scroll');
+                if (scroll) scroll.scrollLeft = 0;
+            }, 500);
+        }
     });
-    var rowHandle = document.getElementById('row-handle');
-    rowHandle.addEventListener('mousedown', function(e) { e.preventDefault(); activeHandle = rowHandle; activeDir = 'row'; startY = e.clientY; overlay.className = 'resize-overlay active-v'; var rows = document.querySelectorAll('.monitor-row'); startFlexV = Array.from(rows).map(function(r) { return parseFloat(r.style.flex) || 1; }); rowHandle.classList.add('active'); document.body.style.userSelect = 'none'; });
-    document.addEventListener('mousemove', function(e) { if (!activeHandle) return;
-        if (activeDir === 'h' || activeDir === 'b') { var quadId = activeHandle.getAttribute('data-quad'); var row = activeHandle.closest('.monitor-row'); var quads = Array.from(row.querySelectorAll('.mon-resizable')); var idx = quads.findIndex(function(q) { return q.id === quadId; }); if (idx < 0 || idx >= quads.length - 1) return; var dx = e.clientX - startX; var rowWidth = row.offsetWidth; var flexChange = (dx / rowWidth) * quads.length; var leftFlex = Math.max(0.3, startFlexH[idx] + flexChange); var rightFlex = Math.max(0.3, startFlexH[idx + 1] - flexChange); if (leftFlex >= 0.3 && rightFlex >= 0.3) { quads[idx].style.flex = leftFlex; quads[idx + 1].style.flex = rightFlex; } }
-        if (activeDir === 'v' || activeDir === 'b' || activeDir === 'row') { var dy = e.clientY - startY; var rows = document.querySelectorAll('.monitor-row'); var gridHeight = document.querySelector('.blue-monitor-grid').offsetHeight; var flexChangeV = (dy / gridHeight) * rows.length; var topFlex = Math.max(0.3, startFlexV[0] + flexChangeV); var bottomFlex = Math.max(0.3, startFlexV[1] - flexChangeV); if (topFlex >= 0.3 && bottomFlex >= 0.3) { rows[0].style.flex = topFlex; rows[1].style.flex = bottomFlex; } }
+
+    document.body.addEventListener('htmx:configRequest', (e) => {
+        const token = window.api.token();
+        if (token) e.detail.headers['Authorization'] = `Bearer ${token}`;
+
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrf) e.detail.headers[CSRF_HEADER] = csrf;
+
+        e.detail.headers['X-Requested-With'] = 'XMLHttpRequest';
     });
-    document.addEventListener('mouseup', function() { if (!activeHandle) return; overlay.className = 'resize-overlay'; if (activeHandle.classList) activeHandle.classList.remove('active'); if (rowHandle.classList) rowHandle.classList.remove('active'); activeHandle = null; activeDir = null; document.body.style.userSelect = ''; });
-    document.querySelectorAll('.quad-content').forEach(function(content) { content.addEventListener('dblclick', function(e) { var quad = e.target.closest('.monitor-quad'); if (!quad) return; var allQuads = document.querySelectorAll('.mon-resizable'); var allRows = document.querySelectorAll('.monitor-row'); var isMaxed = parseFloat(quad.style.flex) > 3; if (isMaxed) { allRows.forEach(function(r) { r.style.flex = '1'; }); allQuads.forEach(function(q) { q.style.flex = '1'; }); } else { allRows.forEach(function(r) { r.style.flex = '0.2'; }); allQuads.forEach(function(q) { q.style.flex = '0.2'; }); quad.style.flex = '5'; quad.closest('.monitor-row').style.flex = '5'; } }); });
-    document.body.addEventListener('htmx:beforeSwap', function(evt) { if (evt.detail.target.classList.contains('quad-content')) { evt.detail.target.style.opacity = '0'; evt.detail.target.style.transform = 'scale(0.97)'; } });
-    document.body.addEventListener('htmx:afterSettle', function(evt) { if (evt.detail.target.classList.contains('quad-content')) { evt.detail.target.style.transition = 'all 0.3s ease'; evt.detail.target.style.opacity = '1'; evt.detail.target.style.transform = 'scale(1)'; } });
+
+    document.body.addEventListener('htmx:afterRequest', (e) => {
+        const path = e.detail.pathInfo?.requestPath || '';
+        const contentType = e.detail.xhr.getResponseHeader('Content-Type') || '';
+        if (!contentType.includes('application/json')) return;
+
+        try {
+            const res = JSON.parse(e.detail.xhr.responseText);
+            if (!res.success || !res.data) return;
+
+            if (path.includes('/Auth/authorize') && res.data.requires2FA) {
+                if (typeof window.render2FA === 'function') {
+                    window.render2FA(res.data.username || 'admin');
+                }
+            }
+            if (path.includes('/Auth/verify-2fa') && res.data.token) {
+                localStorage.setItem(TOKEN_KEY, res.data.token);
+                if (typeof window.showDashboard === 'function') window.showDashboard();
+            }
+            if (path.includes('/Auth/register') && typeof window.renderLogin === 'function') {
+                window.renderLogin();
+            }
+        } catch (ex) {
+            console.warn('[SIEM-PARSE-WARN] Malformed JSON structure response');
+        }
+    });
+
+    document.body.addEventListener('htmx:responseError', (e) => {
+        if (e.detail.xhr.status === 401) window.logout();
+    });
+
+    window.logout = () => {
+        localStorage.removeItem(TOKEN_KEY);
+        if (typeof window.updateHeaderVisibility === 'function') window.updateHeaderVisibility();
+        if (typeof window.closeChat === 'function') window.closeChat();
+        if (typeof window.renderLogin === 'function') window.renderLogin();
+    };
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+    }
 })();
 </script>

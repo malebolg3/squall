@@ -1,5 +1,5 @@
-<!-- SPDX-License-Identifier: UNLICENSED -->
-<!-- Copyright (C) 2026 Th1eros - Proprietary -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (C) 2026 Th1eros -->
 
 <div class="violet-dashboard">
     <div class="violet-topbar">
@@ -11,71 +11,59 @@
             <div class="tel-item" onclick="showHistory()" style="cursor:pointer;">
                 <span class="status-dot violet-pulse"></span>HISTORY: <strong class="txt-violet" id="history-count">0</strong>
             </div>
-            <div class="tel-item"><span class="status-dot green-pulse"></span>NODES: <strong class="txt-green" id="lab-counter">4 ACTIVE</strong></div>
+            <div class="tel-item"><span class="status-dot green-pulse"></span>NODES: <strong class="txt-green" id="lab-counter">0 ACTIVE</strong></div>
             <div class="tel-item"><span class="status-dot violet-pulse"></span>NETWORK: <strong class="txt-violet">ISOLATED</strong></div>
-            <div class="tel-item">UPTIME: <strong class="txt-amber">72h</strong></div>
+            <div class="tel-item">UPTIME: <strong class="txt-amber">--</strong></div>
         </div>
     </div>
-
     <div class="violet-stats-strip">
         <div class="strip-card" onclick="filterLabs('all')" style="cursor:pointer;">
-            <span class="strip-label">TOTAL INSTANCES</span>
-            <span class="strip-value" id="stat-total">4</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-violet);"></div></div>
+            <span class="strip-label">TOTAL INSTANCES</span><span class="strip-value" id="stat-total">--</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--accent-violet);"></div></div>
         </div>
         <div class="strip-card" onclick="filterLabs('online')" style="cursor:pointer;">
-            <span class="strip-label">ONLINE NODES</span>
-            <span class="strip-value" id="stat-online">2</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:50%;background:var(--accent-green);"></div></div>
+            <span class="strip-label">ONLINE NODES</span><span class="strip-value" id="stat-online">--</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--accent-green);"></div></div>
         </div>
         <div class="strip-card" onclick="filterLabs('starting')" style="cursor:pointer;">
-            <span class="strip-label">PROVISIONING</span>
-            <span class="strip-value" id="stat-starting">1</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:25%;background:var(--accent-orange);"></div></div>
+            <span class="strip-label">PROVISIONING</span><span class="strip-value" id="stat-starting">--</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--accent-orange);"></div></div>
         </div>
         <div class="strip-card" onclick="showSnapshots()" style="cursor:pointer;">
-            <span class="strip-label">SNAPSHOTS STORED</span>
-            <span class="strip-value">8 <small>.IMG</small></span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-blue);"></div></div>
+            <span class="strip-label">SNAPSHOTS STORED</span><span class="strip-value">--</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--accent-blue);"></div></div>
         </div>
     </div>
-
     <div class="violet-main-grid">
         <div class="violet-col-left">
             <div class="violet-card margin-b">
-                <div class="card-header">
-                    <h3>INSTANCE ORCHESTRATION MATRIX</h3>
-                    <span class="panel-tag">LIVE</span>
+                <div class="card-header"><h3>INSTANCE ORCHESTRATION MATRIX</h3><span class="panel-tag">LIVE</span></div>
+                <div class="violet-grid" id="violet-lab-grid">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading labs from Violet API...</div>
                 </div>
-                <div class="violet-grid" id="violet-lab-grid"></div>
             </div>
         </div>
         <div class="violet-col-right">
             <div class="violet-card margin-b">
                 <div class="card-header"><h3>PROVISIONING CONTROLS</h3></div>
                 <div class="violet-actions-stack">
-                    <button class="action-btn btn-primary" onclick="showLabConfig(null)">_ DEPLOY INSTANCE</button>
-                    <button class="action-btn btn-primary" onclick="multiplyLabs(1)">_ +1 NODE</button>
-                    <button class="action-btn btn-primary" onclick="multiplyLabs(2)">_ +2 NODES</button>
-                    <button class="action-btn btn-primary" onclick="multiplyLabs(4)">_ +4 NODES</button>
+                    <button class="action-btn btn-primary" onclick="deployLab()">_ DEPLOY INSTANCE</button>
                     <button class="action-btn btn-secondary" onclick="exportConfig()">_ EXPORT CONFIG</button>
                     <button class="action-btn btn-secondary" onclick="document.getElementById('import-file').click()">_ IMPORT CONFIG</button>
                     <button class="action-btn btn-secondary" onclick="deployFromGitHub()">_ DEPLOY FROM GITHUB</button>
-                    <button class="action-btn btn-secondary btn-danger" onclick="removeAllLabs()">_ PURGE ALL</button>
+                    <button class="action-btn btn-secondary btn-danger" onclick="cleanupExpired()">_ CLEANUP EXPIRED</button>
                 </div>
                 <input type="file" id="import-file" style="display:none;" onchange="importConfig(this.files[0])">
             </div>
         </div>
     </div>
-
     <div class="violet-modal" id="lab-config-modal" style="display:none;">
         <div class="violet-modal-content">
-            <div class="modal-header"><h3 id="modal-title">PROVISION NEW INSTANCE</h3></div>
+            <div class="modal-header"><h3 id="modal-title">DEPLOY NEW INSTANCE</h3></div>
             <form id="lab-config-form">
                 <div class="form-group"><label>INSTANCE IDENTIFIER</label><input type="text" id="cfg-name" value="node-env" required></div>
-                <div class="form-group"><label>OPERATING SYSTEM</label><select id="cfg-os"><option value="kali">Kali Linux (Rolling)</option><option value="ubuntu">Ubuntu Server 22.04</option><option value="windows">Windows Server Core</option><option value="metasploitable">Metasploitable v2</option><option value="debian">Debian 12</option><option value="custom">Custom Image</option></select></div>
                 <div class="form-group"><label>CONTAINER IMAGE</label><input type="text" id="cfg-image" value="kalilinux/kali-rolling:latest"></div>
-                <div class="form-group"><label>NETWORK MODE</label><select id="cfg-network"><option value="isolated">Strict Isolation (VLAN)</option><option value="bridge">Layer 2 Bridge</option><option value="nat">NAT Gateway</option></select></div>
+                <div class="form-group"><label>TTL (MINUTES)</label><input type="number" id="cfg-ttl" value="240" min="1" max="1440"></div>
                 <div class="modal-actions">
                     <button type="submit" class="action-btn btn-primary" id="btn-submit">DEPLOY</button>
                     <button type="button" class="action-btn btn-secondary" onclick="closeLabConfig()">CANCEL</button>
@@ -83,79 +71,41 @@
             </form>
         </div>
     </div>
-
     <div id="snapshot-modal" class="violet-modal" style="display:none;">
-        <div class="violet-modal-content">
-            <div class="modal-header"><h3>SNAPSHOTS</h3></div>
-            <div id="snapshot-list" style="font-size:11px;color:var(--text-muted);"></div>
-            <div class="modal-actions"><button class="action-btn btn-secondary" onclick="document.getElementById('snapshot-modal').style.display='none'">CLOSE</button></div>
-        </div>
+        <div class="violet-modal-content"><div class="modal-header"><h3>SNAPSHOTS</h3></div><div id="snapshot-list" style="font-size:11px;color:var(--text-muted);"></div><div class="modal-actions"><button class="action-btn btn-secondary" onclick="document.getElementById('snapshot-modal').style.display='none'">CLOSE</button></div></div>
     </div>
-
     <div id="history-modal" class="violet-modal" style="display:none;">
         <div class="violet-modal-content" style="width:600px;max-height:70vh;overflow-y:auto;">
             <div class="modal-header"><h3>INSTANCE HISTORY</h3></div>
             <div id="history-list" style="font-size:10px;color:var(--text-muted);"></div>
-            <div class="modal-actions">
-                <button class="action-btn btn-secondary" onclick="clearHistory()">CLEAR</button>
-                <button class="action-btn btn-secondary" onclick="document.getElementById('history-modal').style.display='none'">CLOSE</button>
-            </div>
+            <div class="modal-actions"><button class="action-btn btn-secondary" onclick="clearHistory()">CLEAR</button><button class="action-btn btn-secondary" onclick="document.getElementById('history-modal').style.display='none'">CLOSE</button></div>
         </div>
     </div>
 </div>
-
 <script>
-    var currentEditIndex = null;
-    var labs = [
-        { name:'TARGET-KALI-01', os:'kali', status:'online', ip:'10.10.20.15', image:'kalilinux/kali-rolling:latest', network:'isolated' },
-        { name:'DC-WINDOWS-01', os:'windows', status:'online', ip:'10.10.20.32', image:'mcr.microsoft.com/windows/servercore:ltsc2022', network:'bridge' },
-        { name:'SRV-UBUNTU-02', os:'ubuntu', status:'starting', ip:'10.10.20.45', image:'ubuntu:22.04', network:'nat' },
-        { name:'METASPLOIT-V2', os:'metasploitable', status:'offline', ip:'0.0.0.0', image:'tleemcphilamy/metasploitable2:latest', network:'isolated' }
-    ];
+(function() {
+    var labs = [];
     var instanceHistory = JSON.parse(localStorage.getItem('violet_history') || '[]');
-
+    var VIOLET_API = (window.API && window.API.silver) ? window.API.silver : '/api';
+    function authHeaders() { var token = localStorage.getItem('malebolge_token'); return { 'Authorization': 'Bearer ' + (token || ''), 'Content-Type': 'application/json' }; }
+    function fetchLabsFromAPI() { fetch(VIOLET_API + '/Orchestration/agents/violet/labs', { headers: authHeaders() }).then(function(r) { return r.ok ? r.json() : Promise.reject(); }).then(function(d) { if (d.labs && d.labs.length > 0) { labs = d.labs.map(function(l) { return { labId: l.labId || l.id || l.name, name: l.name || l.labId || l.id || 'unknown', image: l.image || 'kali', status: l.status || 'offline', ip: l.ip || '0.0.0.0', network: l.network || 'isolated' }; }); } else { labs = []; } renderLabs(); }).catch(function() { document.getElementById('violet-lab-grid').innerHTML = '<div style="text-align:center;padding:20px;color:var(--accent-red);">Failed to load labs from Violet API.</div>'; }); }
     function saveHistory() { localStorage.setItem('violet_history', JSON.stringify(instanceHistory)); }
-    function addToHistory(lab, action) { instanceHistory.unshift({ time:new Date().toISOString(), name:lab.name, os:lab.os, ip:lab.ip, action:action }); if(instanceHistory.length>50) instanceHistory.pop(); saveHistory(); document.getElementById('history-count').textContent = instanceHistory.length; }
+    function addToHistory(name, action, ip) { instanceHistory.unshift({ time:new Date().toISOString(), name:name, action:action, ip:ip }); if(instanceHistory.length>50) instanceHistory.pop(); saveHistory(); document.getElementById('history-count').textContent = instanceHistory.length; }
     function updateStats() { document.getElementById('stat-total').textContent = labs.length; document.getElementById('stat-online').textContent = labs.filter(function(l){ return l.status==='online'; }).length; document.getElementById('stat-starting').textContent = labs.filter(function(l){ return l.status==='starting'; }).length; document.getElementById('lab-counter').textContent = labs.length + ' ACTIVE'; document.getElementById('history-count').textContent = instanceHistory.length; }
-
-    function renderLabs() {
-        var grid = document.getElementById('violet-lab-grid');
-        var html = '';
-        labs.forEach(function(lab, i) {
-            var statusClass = lab.status==='online'?'status-online':(lab.status==='starting'?'status-starting':'status-offline');
-            var statusText = lab.status==='online'?'RUNNING':(lab.status==='starting'?'PROVISIONING':'STOPPED');
-            html += '<div class="violet-lab-card">'+
-                '<div class="card-meta"><div><span class="violet-lab-name">'+lab.name+'</span><span class="instance-ip">'+lab.ip+'</span></div><span class="os-tag">'+lab.os.toUpperCase()+'</span></div>'+
-                '<div class="violet-lab-status"><span class="status-indicator '+statusClass+'"></span>'+statusText+'</div>'+
-                '<div class="violet-lab-actions">'+
-                '<button class="violet-btn" onclick="toggleLab('+i+')">'+(lab.status==='online'?'STOP':(lab.status==='starting'?'WAIT':'START'))+'</button>'+
-                '<button class="violet-btn" onclick="snapshotLab('+i+')">SNAP</button>'+
-                '<button class="violet-btn" onclick="accessLab('+i+')">SSH</button>'+
-                '<button class="violet-btn" onclick="showLabConfig('+i+')">EDIT</button>'+
-                '<button class="violet-btn btn-destroy" onclick="destroyLab('+i+')">X</button>'+
-                '</div></div>';
-        });
-        grid.innerHTML = html;
-        updateStats();
-    }
-
-    function toggleLab(i) { var prev = labs[i].status; labs[i].status = labs[i].status==='online'?'offline':(labs[i].status==='offline'?'starting':'offline'); addToHistory(labs[i], prev==='online'?'STOP':(prev==='offline'?'START':'TOGGLE')); if(labs[i].status==='starting'){ setTimeout(function(){ labs[i].status='online'; addToHistory(labs[i],'ONLINE'); renderLabs(); },2000); } renderLabs(); }
-    function multiplyLabs(n) { var osTypes=['kali','windows','ubuntu','metasploitable','debian']; var names=['KALI-NODE','WIN-SERVER','UBUNTU-CORE','METASPLOIT','DEBIAN-LAB']; for(var i=0;i<n;i++){ var idx=labs.length; var newLab={ name:names[idx%names.length]+'-'+idx, os:osTypes[idx%osTypes.length], status:'offline', ip:'10.10.20.'+(100+idx), image:'default:latest', network:'isolated' }; labs.push(newLab); addToHistory(newLab,'CREATED'); } renderLabs(); }
-    function removeAllLabs() { if(!confirm('TERMINATE ALL?')) return; labs.forEach(function(l){ addToHistory(l,'PURGED'); }); labs=[]; renderLabs(); }
-    function destroyLab(i) { addToHistory(labs[i],'DESTROYED'); labs.splice(i,1); renderLabs(); }
-    function accessLab(i) { alert('SSH -> '+labs[i].name+' ['+labs[i].ip+']'); addToHistory(labs[i],'ACCESS'); }
-    function filterLabs(status) { alert('Filter: '+status); }
-    function showSnapshots() { document.getElementById('snapshot-list').innerHTML = labs.map(function(l){ return '<div style="padding:4px 0;border-bottom:1px solid var(--border-color);">SNAP '+l.name+' - '+new Date().toLocaleString('pt-BR')+'</div>'; }).join(''); document.getElementById('snapshot-modal').style.display='flex'; }
-    function snapshotLab(i) { alert('Snapshot de '+labs[i].name+' salvo.'); addToHistory(labs[i],'SNAPSHOT'); }
-    function showLabConfig(index) { currentEditIndex=index; document.getElementById('modal-title').textContent=index!==null?'MODIFY INSTANCE':'PROVISION NEW INSTANCE'; document.getElementById('btn-submit').textContent=index!==null?'SAVE':'DEPLOY'; if(index!==null){ document.getElementById('cfg-name').value=labs[index].name; document.getElementById('cfg-os').value=labs[index].os; document.getElementById('cfg-image').value=labs[index].image||''; document.getElementById('cfg-network').value=labs[index].network||'isolated'; } else { document.getElementById('lab-config-form').reset(); } document.getElementById('lab-config-modal').style.display='flex'; }
-    function closeLabConfig() { document.getElementById('lab-config-modal').style.display='none'; }
-    document.getElementById('lab-config-form').addEventListener('submit',function(e){ e.preventDefault(); var name=document.getElementById('cfg-name').value.toUpperCase(); var os=document.getElementById('cfg-os').value; var image=document.getElementById('cfg-image').value; var network=document.getElementById('cfg-network').value; if(currentEditIndex!==null){ labs[currentEditIndex].name=name; labs[currentEditIndex].os=os; labs[currentEditIndex].image=image; labs[currentEditIndex].network=network; addToHistory(labs[currentEditIndex],'MODIFIED'); } else { var newLab={ name:name, os:os, status:'offline', ip:'10.10.20.'+(100+labs.length), image:image, network:network }; labs.push(newLab); addToHistory(newLab,'DEPLOYED'); } renderLabs(); closeLabConfig(); });
-
-    function showHistory() { var list=document.getElementById('history-list'); var history=instanceHistory; if(history.length===0){ list.innerHTML='<p>No history.</p>'; } else { list.innerHTML=history.map(function(h){ return '<div style="padding:6px 0;border-bottom:1px solid var(--border-color);"><span style="color:var(--text-muted);">'+new Date(h.time).toLocaleString('pt-BR')+'</span> <strong style="color:var(--text-white);">'+h.action+'</strong> <span style="color:var(--accent-violet);">'+h.name+'</span> <small>'+h.ip+'</small></div>'; }).join(''); } document.getElementById('history-modal').style.display='flex'; }
-    function clearHistory() { instanceHistory=[]; saveHistory(); updateStats(); showHistory(); }
-    function exportConfig() { var config={ version:'1.0', exportedAt:new Date().toISOString(), labs:labs, history:instanceHistory }; var blob=new Blob([JSON.stringify(config,null,2)],{type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='violet-config-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); alert('Configuracao exportada! Salve no GitHub.'); }
-    function importConfig(file) { var reader=new FileReader(); reader.onload=function(e){ var config=JSON.parse(e.target.result); labs=config.labs||[]; instanceHistory=config.history||[]; saveHistory(); renderLabs(); alert('Configuracao importada! '+labs.length+' labs carregados.'); }; reader.readAsText(file); }
-    function deployFromGitHub() { var url=prompt('URL do arquivo JSON no GitHub (raw):'); if(!url) return; fetch(url).then(function(r){ return r.json(); }).then(function(config){ labs=config.labs||[]; instanceHistory=config.history||[]; saveHistory(); renderLabs(); alert('Deploy concluido! '+labs.length+' instancias carregadas.'); }).catch(function(){ alert('Erro ao carregar do GitHub.'); }); }
-
-    renderLabs();
+    function renderLabs() { var grid = document.getElementById('violet-lab-grid'); if (labs.length === 0) { grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">No active labs. Deploy one to start.</div>'; updateStats(); return; } var html = ''; labs.forEach(function(lab, i) { var statusClass = lab.status==='online'?'status-online':(lab.status==='starting'?'status-starting':'status-offline'); var statusText = lab.status==='online'?'RUNNING':(lab.status==='starting'?'PROVISIONING':'STOPPED'); html += '<div class="violet-lab-card"><div class="card-meta"><div><span class="violet-lab-name">'+lab.name+'</span><span class="instance-ip">'+lab.ip+'</span></div><span class="os-tag">'+(lab.image||'kali').toUpperCase()+'</span></div><div class="violet-lab-status"><span class="status-indicator '+statusClass+'"></span>'+statusText+'</div><div class="violet-lab-actions"><button class="violet-btn" onclick="accessLab(\''+lab.labId+'\')">SSH</button><button class="violet-btn btn-destroy" onclick="destroyLab(\''+lab.labId+'\')">X</button></div></div>'; }); grid.innerHTML = html; updateStats(); }
+    window.deployLab = function() { document.getElementById('modal-title').textContent = 'DEPLOY NEW INSTANCE'; document.getElementById('btn-submit').textContent = 'DEPLOY'; document.getElementById('lab-config-form').reset(); document.getElementById('lab-config-modal').style.display = 'flex'; };
+    window.closeLabConfig = function() { document.getElementById('lab-config-modal').style.display = 'none'; };
+    document.getElementById('lab-config-form').addEventListener('submit', function(e) { e.preventDefault(); var name = document.getElementById('cfg-name').value.trim(); var image = document.getElementById('cfg-image').value.trim(); var ttl = parseInt(document.getElementById('cfg-ttl').value) || 240; if (!name) return; fetch(VIOLET_API + '/Orchestration/agents/violet/sandbox', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name, image: image, ttlMinutes: ttl, tools: ['nmap', 'gobuster', 'nikto'] }) }).then(function(r) { return r.ok ? r.json() : Promise.reject(); }).then(function() { addToHistory(name, 'DEPLOYED', '0.0.0.0'); closeLabConfig(); fetchLabsFromAPI(); }).catch(function() { alert('Failed to deploy lab.'); }); });
+    window.destroyLab = function(labId) { if (!confirm('Destroy lab ' + labId + '?')) return; fetch(VIOLET_API + '/Orchestration/agents/violet/labs/' + labId, { method: 'DELETE', headers: authHeaders() }).then(function(r) { return r.ok ? r.json() : Promise.reject(); }).then(function() { addToHistory(labId, 'DESTROYED', '0.0.0.0'); fetchLabsFromAPI(); }).catch(function() { alert('Failed to destroy lab.'); }); };
+    window.cleanupExpired = function() { fetch(VIOLET_API + '/Orchestration/agents/violet/cleanup', { method: 'POST', headers: authHeaders() }).then(function(r) { return r.ok ? r.json() : Promise.reject(); }).then(function(d) { alert('Cleaned ' + (d.cleaned || 0) + ' expired labs.'); fetchLabsFromAPI(); }).catch(function() { alert('Failed to cleanup.'); }); };
+    window.accessLab = function(labId) { alert('SSH access to lab: ' + labId); addToHistory(labId, 'ACCESS', '0.0.0.0'); };
+    window.filterLabs = function(status) { alert('Filter: '+status); };
+    window.showSnapshots = function() { document.getElementById('snapshot-list').innerHTML = labs.map(function(l){ return '<div style="padding:4px 0;border-bottom:1px solid var(--border-color);">SNAP '+l.name+' - '+new Date().toLocaleString('pt-BR')+'</div>'; }).join('') || '<div style="color:var(--text-muted);">No snapshots available.</div>'; document.getElementById('snapshot-modal').style.display='flex'; };
+    window.showHistory = function() { var list = document.getElementById('history-list'); if (instanceHistory.length===0) { list.innerHTML='<p>No history.</p>'; } else { list.innerHTML=instanceHistory.map(function(h){ return '<div style="padding:6px 0;border-bottom:1px solid var(--border-color);"><span style="color:var(--text-muted);">'+new Date(h.time).toLocaleString('pt-BR')+'</span> <strong style="color:var(--text-white);">'+h.action+'</strong> <span style="color:var(--accent-violet);">'+h.name+'</span> <small>'+h.ip+'</small></div>'; }).join(''); } document.getElementById('history-modal').style.display='flex'; };
+    window.clearHistory = function() { instanceHistory=[]; saveHistory(); updateStats(); window.showHistory(); };
+    window.exportConfig = function() { var config = { version:'1.0', exportedAt:new Date().toISOString(), labs:labs, history:instanceHistory }; var blob = new Blob([JSON.stringify(config,null,2)],{type:'application/json'}); var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href = url; a.download = 'violet-config-'+new Date().toISOString().slice(0,10)+'.json'; a.click(); alert('Configuracao exportada!'); };
+    window.importConfig = function(file) { var reader = new FileReader(); reader.onload = function(e) { var config = JSON.parse(e.target.result); labs = config.labs || []; instanceHistory = config.history || []; saveHistory(); renderLabs(); alert('Configuracao importada! '+labs.length+' labs carregados.'); }; reader.readAsText(file); };
+    window.deployFromGitHub = function() { var url = prompt('URL do arquivo JSON no GitHub (raw):'); if (!url) return; fetch(url).then(function(r) { return r.json(); }).then(function(config) { var promises = (config.labs || []).map(function(l) { return fetch(VIOLET_API + '/Orchestration/agents/violet/sandbox', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: l.name, image: l.image, ttlMinutes: l.ttl || 240, tools: l.tools || ['nmap'] }) }); }); return Promise.all(promises); }).then(function() { fetchLabsFromAPI(); alert('Deploy concluido!'); }).catch(function() { alert('Erro ao carregar do GitHub.'); }); };
+    fetchLabsFromAPI(); setInterval(fetchLabsFromAPI, 30000);
+})();
 </script>

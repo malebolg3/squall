@@ -1,10 +1,13 @@
 {
-  "name": "Malebolge",
+  "name": "Malebolge Hydra - SIEM Operations Center",
   "short_name": "Malebolge",
+  "description": "Multi-agent cybersecurity orchestration platform with SIEM, exploit framework, lab environments, and AI analysis",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#0d1117",
+  "background_color": "#0a0d14",
+  "theme_color": "#0a0d14",
+  "orientation": "any",
+  "categories": ["security", "productivity", "developer tools"],
   "icons": [
     {
       "src": "/Male.png",
@@ -14,7 +17,8 @@
     {
       "src": "/Male.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

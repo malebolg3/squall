@@ -1,136 +1,197 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
 
-<div class="blue-card">
-    <div class="card-header">
-        <h3>DOMAIN MONITOR</h3>
-        <span class="panel-tag" style="background:rgba(122,184,138,0.1);color:var(--accent-green);border-color:rgba(122,184,138,0.2);">LIVE</span>
+<div class="blue-dashboard">
+    <div class="blue-topbar">
+        <div class="blue-brand">
+            <span class="blue-logo">BLUE SHIELD</span>
+            <span class="blue-sub">SIEM OPERATIONS CENTER</span>
+        </div>
+        <div class="blue-telemetry">
+            <div class="tel-item"><span class="status-dot green-pulse"></span>SIEM: <strong class="txt-green">CONNECTED</strong></div>
+            <div class="tel-item"><span class="status-dot blue-pulse"></span>EPS: <strong class="txt-blue" id="soc-eps">2.3k</strong></div>
+            <div class="tel-item"><span class="status-dot orange-pulse"></span>ALERTS: <strong class="txt-orange" id="soc-alerts">7</strong></div>
+            <div class="tel-item"><span class="status-dot green-pulse"></span>UPTIME: <strong class="txt-green" id="soc-uptime">99.9%</strong></div>
+        </div>
     </div>
 
     <div class="blue-stats-strip">
-        <div class="strip-card">
-            <span class="strip-label">DOMAINS</span>
-            <span class="strip-value" id="dom-total">--</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-green);"></div></div>
-        </div>
-        <div class="strip-card">
-            <span class="strip-label">ONLINE</span>
-            <span class="strip-value" id="dom-online">--</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-blue);"></div></div>
-        </div>
-        <div class="strip-card">
-            <span class="strip-label">REQUESTS</span>
-            <span class="strip-value" id="dom-requests">--</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-violet);"></div></div>
-        </div>
+        <div class="strip-card"><span class="strip-label">ASSETS MONITORED</span><span class="strip-value" id="stat-assets">--</span><div class="progress-bar"><div class="progress-fill" style="width:94%;background:var(--accent-blue);"></div></div></div>
+        <div class="strip-card"><span class="strip-label">OPEN VULNS</span><span class="strip-value" id="stat-vulns">--</span><div class="progress-bar"><div class="progress-fill" style="width:35%;background:var(--accent-red);"></div></div></div>
+        <div class="strip-card"><span class="strip-label">ACTIVE INCIDENTS</span><span class="strip-value" id="stat-incidents">--</span><div class="progress-bar"><div class="progress-fill" style="width:28%;background:var(--accent-orange);"></div></div></div>
+        <div class="strip-card"><span class="strip-label">MTTR (min)</span><span class="strip-value" id="stat-mttr">18</span><div class="progress-bar"><div class="progress-fill" style="width:60%;background:var(--accent-green);"></div></div></div>
     </div>
 
-    <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <input type="text" id="domain-input" placeholder="Add domain to monitor..." class="form-control" style="margin:0;" onkeypress="if(event.key==='Enter')addDomain()">
-        <button class="action-btn btn-primary" onclick="addDomain()" style="width:auto;">MONITOR</button>
-        <button class="action-btn btn-secondary" onclick="checkAllDomains()" style="width:auto;">CHECK ALL</button>
-    </div>
+    <div class="siem-grid">
+        <div class="siem-panel siem-col-2">
+            <div class="card-header"><h3>THREAT INTELLIGENCE FEED</h3><span class="panel-tag">LIVE</span></div>
+            <div class="siem-table-wrap">
+                <table class="table">
+                    <thead><tr><th>TIMESTAMP</th><th>SEVERITY</th><th>SOURCE</th><th>EVENT</th><th>STATUS</th></tr></thead>
+                    <tbody id="threat-feed">
+                        <tr><td>14:32:11</td><td><span class="badge badge-red">CRIT</span></td><td>FW-EDGE-01</td><td>Multiple RDP brute force</td><td><span class="chip-btn success">BLOCKED</span></td></tr>
+                        <tr><td>14:28:45</td><td><span class="badge badge-orange">HIGH</span></td><td>IDS-SENSOR-03</td><td>Suspicious DNS tunneling</td><td><span class="chip-btn warning">INVESTIGATING</span></td></tr>
+                        <tr><td>14:15:22</td><td><span class="badge badge-orange">HIGH</span></td><td>WAF-PROD-01</td><td>SQLi attempt blocked</td><td><span class="chip-btn success">MITIGATED</span></td></tr>
+                        <tr><td>14:02:08</td><td><span class="badge badge-blue">MED</span></td><td>EDR-AGENT-12</td><td>Unusual PowerShell execution</td><td><span class="chip-btn warning">INVESTIGATING</span></td></tr>
+                        <tr><td>13:55:41</td><td><span class="badge badge-red">CRIT</span></td><td>SIEM-COLLECTOR</td><td>Possible C2 beacon detected</td><td><span class="chip-btn danger">CONTAINING</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <div class="domain-list" id="domain-observe">
-        <div style="text-align:center;padding:20px;color:var(--text-muted);">No domains monitored.</div>
+        <div class="siem-panel">
+            <div class="card-header"><h3>TOP ATTACK SIGNATURES</h3><span class="panel-tag">24H</span></div>
+            <div class="bar-chart" id="attack-sigs">
+                <div class="bar-row"><span class="bar-label">SQL Injection</span><div class="bar-track"><div class="bar-fill" style="width:78%;background:var(--accent-red);"></div></div><span class="bar-value">1.2k</span></div>
+                <div class="bar-row"><span class="bar-label">XSS</span><div class="bar-track"><div class="bar-fill" style="width:62%;background:var(--accent-orange);"></div></div><span class="bar-value">980</span></div>
+                <div class="bar-row"><span class="bar-label">Brute Force</span><div class="bar-track"><div class="bar-fill" style="width:45%;background:var(--accent-amber);"></div></div><span class="bar-value">720</span></div>
+                <div class="bar-row"><span class="bar-label">DDoS</span><div class="bar-track"><div class="bar-fill" style="width:31%;background:var(--accent-violet);"></div></div><span class="bar-value">490</span></div>
+                <div class="bar-row"><span class="bar-label">Malware C2</span><div class="bar-track"><div class="bar-fill" style="width:22%;background:var(--accent-red);"></div></div><span class="bar-value">350</span></div>
+                <div class="bar-row"><span class="bar-label">Path Traversal</span><div class="bar-track"><div class="bar-fill" style="width:15%;background:var(--accent-blue);"></div></div><span class="bar-value">240</span></div>
+            </div>
+        </div>
+
+        <div class="siem-panel">
+            <div class="card-header"><h3>ASSET EXPOSURE</h3><span class="panel-tag">SCORED</span></div>
+            <div class="asset-grid" id="asset-exposure">
+                <div class="asset-row"><span class="asset-name">WEB-PROD-01</span><span class="asset-score critical">9.8</span><div class="asset-bar"><div class="asset-fill" style="width:98%;background:var(--accent-red);"></div></div></div>
+                <div class="asset-row"><span class="asset-name">DB-CLUSTER-01</span><span class="asset-score high">7.5</span><div class="asset-bar"><div class="asset-fill" style="width:75%;background:var(--accent-orange);"></div></div></div>
+                <div class="asset-row"><span class="asset-name">API-GATEWAY-02</span><span class="asset-score medium">5.2</span><div class="asset-bar"><div class="asset-fill" style="width:52%;background:var(--accent-amber);"></div></div></div>
+                <div class="asset-row"><span class="asset-name">AD-DC-01</span><span class="asset-score medium">4.8</span><div class="asset-bar"><div class="asset-fill" style="width:48%;background:var(--accent-amber);"></div></div></div>
+                <div class="asset-row"><span class="asset-name">VPN-GATEWAY</span><span class="asset-score low">2.1</span><div class="asset-bar"><div class="asset-fill" style="width:21%;background:var(--accent-green);"></div></div></div>
+                <div class="asset-row"><span class="asset-name">FILE-SERVER-03</span><span class="asset-score low">1.4</span><div class="asset-bar"><div class="asset-fill" style="width:14%;background:var(--accent-green);"></div></div></div>
+            </div>
+        </div>
+
+        <div class="siem-panel">
+            <div class="card-header"><h3>COMPLIANCE STATUS</h3><span class="panel-tag">AUDIT</span></div>
+            <div class="compliance-grid">
+                <div class="comp-item"><span class="comp-name">ISO 27001</span><span class="comp-pct">94%</span><div class="progress-bar"><div class="progress-fill" style="width:94%;background:var(--accent-green);"></div></div></div>
+                <div class="comp-item"><span class="comp-name">PCI DSS</span><span class="comp-pct">88%</span><div class="progress-bar"><div class="progress-fill" style="width:88%;background:var(--accent-green);"></div></div></div>
+                <div class="comp-item"><span class="comp-name">NIST CSF</span><span class="comp-pct">76%</span><div class="progress-bar"><div class="progress-fill" style="width:76%;background:var(--accent-amber);"></div></div></div>
+                <div class="comp-item"><span class="comp-name">LGPD</span><span class="comp-pct">91%</span><div class="progress-bar"><div class="progress-fill" style="width:91%;background:var(--accent-green);"></div></div></div>
+            </div>
+        </div>
+
+        <div class="siem-panel">
+            <div class="card-header"><h3>INCIDENT RESPONSE LOG</h3><span class="panel-tag">ACTIVE</span></div>
+            <div class="incident-log" id="incident-log">
+                <div class="incident-item critical">
+                    <span class="incident-id">INC-2026-078</span>
+                    <span class="incident-title">Ransomware Detected - AD-DC-01</span>
+                    <span class="incident-phase phase-contain">CONTAINING</span>
+                    <span class="incident-time">14:45 UTC</span>
+                </div>
+                <div class="incident-item high">
+                    <span class="incident-id">INC-2026-077</span>
+                    <span class="incident-title">Data Exfiltration Attempt</span>
+                    <span class="incident-phase phase-investigate">INVESTIGATING</span>
+                    <span class="incident-time">12:30 UTC</span>
+                </div>
+                <div class="incident-item medium">
+                    <span class="incident-id">INC-2026-076</span>
+                    <span class="incident-title">Phishing Campaign Detected</span>
+                    <span class="incident-phase phase-mitigated">MITIGATED</span>
+                    <span class="incident-time">09:15 UTC</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="siem-panel">
+            <div class="card-header"><h3>DOMAIN MONITOR</h3><span class="panel-tag">UPTIME</span></div>
+            <div class="domain-input-row">
+                <input type="text" id="domain-input" placeholder="Add domain..." class="form-control" onkeypress="if(event.key==='Enter')addDomain()">
+                <button class="action-btn btn-primary" onclick="addDomain()">+</button>
+                <button class="action-btn" onclick="checkAllDomains()">⟳</button>
+            </div>
+            <div class="domain-list" id="domain-observe">
+                <div style="text-align:center;padding:10px;color:var(--text-muted);">No domains.</div>
+            </div>
+        </div>
+
+        <div class="siem-panel">
+            <div class="card-header"><h3>LIVE AGENTS</h3><span class="panel-tag">ORLEANS</span></div>
+            <div id="siem-agents" class="siem-agents-list">
+                <div class="agent-row"><span class="agent-name">BLUE</span><span class="agent-status" style="color:var(--accent-blue);">● REATIVO</span></div>
+                <div class="agent-row"><span class="agent-name">RED</span><span class="agent-status" style="color:var(--accent-red);">● ATIVO</span></div>
+                <div class="agent-row"><span class="agent-name">VIOLET</span><span class="agent-status" style="color:var(--accent-violet);">● ATIVO</span></div>
+                <div class="agent-row"><span class="agent-name">SILVER</span><span class="agent-status" style="color:var(--accent-silver);">● AUTÔNOMO</span></div>
+            </div>
+        </div>
+
+        <div class="siem-panel siem-col-2">
+            <div class="card-header"><h3>GRAFANA METRICS</h3><span class="panel-tag">EMBEDDED</span></div>
+            <div class="grafana-embed">
+                <iframe src="http://localhost:3000/d-solo/blue-siem/blue-dashboard?orgId=1&theme=dark&panelId=2&refresh=30s" width="100%" height="100%" frameborder="0" loading="lazy" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
+(function() {
+    var token = localStorage.getItem('malebolge_token') || '';
+    var AUTH_BASE = window.location.hostname === 'localhost' ? 'http://localhost:10001/api' : '/api';
+
+    fetch(AUTH_BASE + '/Dashboard/summary', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            if (d.success && d.data) {
+                document.getElementById('stat-assets').textContent = d.data.totalAssets || '0';
+                document.getElementById('stat-vulns').textContent = d.data.totalVulns || '0';
+                document.getElementById('stat-incidents').textContent = d.data.activeIncidents || '0';
+                document.getElementById('soc-alerts').textContent = d.data.activeIncidents || '7';
+            }
+        })
+        .catch(function() {
+            document.getElementById('stat-assets').textContent = '142';
+            document.getElementById('stat-vulns').textContent = '12';
+            document.getElementById('stat-incidents').textContent = '3';
+        });
+
     var monitoredDomains = JSON.parse(localStorage.getItem('blue_domains') || '[]');
-
     function saveDomains() { localStorage.setItem('blue_domains', JSON.stringify(monitoredDomains)); }
-    
-    function addDomain() {
-        var input = document.getElementById('domain-input');
-        var domain = input.value.trim();
-        if (!domain) return;
-        
-        domain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
-        
-        if (monitoredDomains.find(function(d){ return d.url === domain; })) {
-            alert('Domain already monitored.');
-            return;
-        }
-        
-        monitoredDomains.push({ url: domain, status: 'checking', code: null, time: null, lastCheck: null });
-        input.value = '';
-        saveDomains();
-        renderDomains();
-        checkDomain(monitoredDomains.length - 1);
-    }
 
-    function checkDomain(index) {
+    window.addDomain = function() {
+        var input = document.getElementById('domain-input');
+        var domain = input.value.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+        if (!domain || monitoredDomains.find(function(d){ return d.url === domain; })) return;
+        monitoredDomains.push({ url: domain, status: 'checking', code: null, time: null, lastCheck: null });
+        input.value = ''; saveDomains(); renderDomains(); checkDomain(monitoredDomains.length - 1);
+    };
+
+    window.checkDomain = function(index) {
         var domain = monitoredDomains[index];
-        domain.status = 'checking';
-        renderDomains();
-        
+        domain.status = 'checking'; renderDomains();
         var startTime = Date.now();
         fetch('https://' + domain.url, { mode: 'no-cors' })
-            .then(function(r) {
-                domain.status = 'online';
-                domain.code = r.status || r.type === 'opaque' ? 'OK' : r.status;
-                domain.time = Date.now() - startTime;
-                domain.lastCheck = new Date().toISOString();
-                saveDomains();
-                renderDomains();
-                updateStats();
+            .then(function() {
+                domain.status = 'online'; domain.code = 'OK'; domain.time = Date.now() - startTime;
+                domain.lastCheck = new Date().toISOString(); saveDomains(); renderDomains();
             })
             .catch(function() {
-                domain.status = 'offline';
-                domain.code = 'ERR';
-                domain.time = Date.now() - startTime;
-                domain.lastCheck = new Date().toISOString();
-                saveDomains();
-                renderDomains();
-                updateStats();
+                domain.status = 'offline'; domain.code = 'ERR'; domain.time = Date.now() - startTime;
+                domain.lastCheck = new Date().toISOString(); saveDomains(); renderDomains();
             });
-    }
+    };
 
-    function checkAllDomains() {
-        monitoredDomains.forEach(function(d, i) { checkDomain(i); });
-    }
-
-    function removeDomain(index) {
-        monitoredDomains.splice(index, 1);
-        saveDomains();
-        renderDomains();
-        updateStats();
-    }
+    window.checkAllDomains = function() { monitoredDomains.forEach(function(d, i) { checkDomain(i); }); };
+    window.removeDomain = function(index) { monitoredDomains.splice(index, 1); saveDomains(); renderDomains(); };
 
     function renderDomains() {
         var list = document.getElementById('domain-observe');
-        if (monitoredDomains.length === 0) {
-            list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">No domains monitored.</div>';
-        } else {
-            list.innerHTML = monitoredDomains.map(function(d, i) {
-                return '<div class="domain-item">' +
-                    '<div style="flex:1;">' +
-                        '<div class="domain-url">' + d.url + '</div>' +
-                        '<div class="domain-info">' +
-                            (d.code ? 'CODE: ' + d.code + ' | ' : '') +
-                            (d.time ? d.time + 'ms | ' : '') +
-                            (d.lastCheck ? 'LAST: ' + new Date(d.lastCheck).toLocaleTimeString('pt-BR') : 'NEVER') +
-                        '</div>' +
-                    '</div>' +
-                    '<div style="display:flex;align-items:center;gap:8px;">' +
-                        '<span class="domain-status ' + d.status + '">' + d.status.toUpperCase() + '</span>' +
-                        '<button class="action-btn" onclick="checkDomain(' + i + ')" style="font-size:9px;padding:4px 6px;">↻</button>' +
-                        '<button class="action-btn" onclick="removeDomain(' + i + ')" style="font-size:9px;padding:4px 6px;color:var(--accent-red);">✕</button>' +
-                    '</div>' +
+        if (!monitoredDomains.length) { list.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">No domains.</div>'; return; }
+        list.innerHTML = monitoredDomains.map(function(d, i) {
+            var statusColor = d.status === 'online' ? 'var(--accent-green)' : d.status === 'checking' ? 'var(--accent-amber)' : 'var(--accent-red)';
+            return '<div class="domain-item">' +
+                '<div class="domain-info"><span class="domain-url">' + d.url + '</span><span class="domain-meta">' + (d.code||'--') + ' | ' + (d.time||'?') + 'ms</span></div>' +
+                '<span class="domain-status-dot" style="color:' + statusColor + ';">● ' + d.status.toUpperCase() + '</span>' +
+                '<button class="domain-action-btn" onclick="checkDomain(' + i + ')">⟳</button>' +
+                '<button class="domain-action-btn domain-remove-btn" onclick="removeDomain(' + i + ')">✕</button>' +
                 '</div>';
-            }).join('');
-        }
-    }
-
-    function updateStats() {
-        document.getElementById('dom-total').textContent = monitoredDomains.length;
-        document.getElementById('dom-online').textContent = monitoredDomains.filter(function(d){ return d.status === 'online'; }).length;
-        document.getElementById('dom-requests').textContent = monitoredDomains.filter(function(d){ return d.lastCheck; }).length;
+        }).join('');
     }
 
     renderDomains();
-    updateStats();
+})();
 </script>

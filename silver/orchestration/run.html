@@ -1,134 +1,57 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
 
-<div class="silver-card" style="max-width:100%;">
-    <div class="card-header">
-        <h3>ORCHESTRATION WORKFLOWS</h3>
-        <span class="panel-tag" style="background:rgba(184,189,196,0.1);color:var(--accent-silver);border-color:rgba(184,189,196,0.2);">EXECUTE</span>
+<div class="silver-dashboard">
+    <div class="silver-topbar">
+        <span class="silver-logo">ORCHESTRATION</span>
+        <div class="silver-telemetry">
+            <span style="font-size:9px;color:var(--text-muted);">WORKFLOW ENGINE</span>
+        </div>
     </div>
 
     <div class="orchestration-grid">
-        <div class="form-section">
-            <div class="section-title">TARGET</div>
-            <div class="form-group"><label>HOST / IP</label><input type="text" id="wf-target" class="form-control" autocomplete="off"></div>
+        <div class="silver-card">
+            <div class="card-header"><h3>WORKFLOWS</h3></div>
+            <div class="workflow-actions">
+                <button class="quick-action" hx-post="/api/Orchestration/workflow/scan" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-target="#workflow-result" hx-swap="innerHTML">SCAN</button>
+                <button class="quick-action" hx-post="/api/Orchestration/workflow/pentest" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-target="#workflow-result" hx-swap="innerHTML">PENTEST</button>
+                <button class="quick-action full" hx-post="/api/Orchestration/workflow/full" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-target="#workflow-result" hx-swap="innerHTML">FULL ATTACK</button>
+                <button class="quick-action" hx-post="/api/Orchestration/ai/analyze" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-vals='js:{"context":"security-analysis","data":"Analyze current security posture"}' hx-target="#workflow-result" hx-swap="innerHTML">AI ANALYZE</button>
+            </div>
+            <div id="workflow-result" style="margin-top:12px;font-size:10px;color:var(--text-muted);">Select a workflow to execute.</div>
         </div>
-        <div class="form-section">
-            <div class="section-title">WORKFLOW TYPE</div>
-            <div class="form-group"><label>SELECT</label><select id="wf-type" class="form-control" onchange="updateWorkflowForm()">
-                <option value="scan">SCAN WORKFLOW</option>
-                <option value="pentest">PENTEST WORKFLOW</option>
-                <option value="full">FULL WORKFLOW</option>
-                <option value="ai">AI ANALYSIS</option>
-            </select></div>
+
+        <div class="silver-card">
+            <div class="card-header"><h3>CONSOLE</h3></div>
+            <div class="silver-chat" id="orch-chat-box"><div class="chat-msg system">Orchestration engine ready.</div></div>
+            <div class="silver-chat-input">
+                <input type="text" id="orch-input" class="form-control" placeholder="Command..." onkeypress="if(event.key==='Enter')sendOrch()" style="flex:1;">
+                <button class="action-btn" onclick="sendOrch()" style="background:var(--accent-silver);color:var(--bg-main);">RUN</button>
+            </div>
         </div>
     </div>
-
-    <div class="form-section" id="scan-opts">
-        <div class="section-title">SCAN OPTIONS</div>
-        <div class="form-group"><label>SCAN TYPE</label><select id="scan-type" class="form-control">
-            <option value="full">FULL</option><option value="nmap">NMAP</option><option value="nikto">NIKTO</option><option value="gobuster">GOBUSTER</option>
-        </select></div>
-    </div>
-    <div class="form-section" id="pentest-opts" style="display:none;">
-        <div class="section-title">PENTEST OPTIONS</div>
-        <div class="form-group"><label>EXPLOIT NAME</label><input type="text" id="exploit-name" class="form-control" value="metasploit"></div>
-        <div class="form-group"><label>IMAGE</label><input type="text" id="wf-image" class="form-control" value="kalilinux/kali-rolling:latest"></div>
-    </div>
-    <div class="form-section" id="ai-opts" style="display:none;">
-        <div class="section-title">AI OPTIONS</div>
-        <div class="form-group"><label>CONTEXT</label><input type="text" id="ai-context" class="form-control" placeholder="Context description"></div>
-        <div class="form-group"><label>DATA</label><textarea id="ai-data" class="form-control" rows="3" placeholder="Data to analyze..."></textarea></div>
-    </div>
-
-    <div class="workflow-actions">
-        <button class="quick-action full" onclick="executeWorkflow()">EXECUTE WORKFLOW</button>
-        <button class="quick-action" onclick="getAgentsStatus()">AGENTS STATUS</button>
-        <div class="search-row">
-            <input type="text" id="events-query" class="form-control" placeholder="Search events query...">
-            <button class="quick-action" onclick="searchEvents()">SEARCH EVENTS</button>
-        </div>
-        <button class="quick-action danger" onclick="cleanupExpired()">CLEANUP EXPIRED</button>
-    </div>
-
-    <div id="workflow-result" style="margin-top:12px;font-size:10px;max-height:300px;overflow-y:auto;"></div>
 </div>
 
 <script>
 (function() {
-    var API = window.__API_SILVER__ || 'http://localhost:5076';
-    function token() { return localStorage.getItem('abitat_token')||''; }
-    function headers() { return { 'Authorization':'Bearer '+token(), 'Content-Type':'application/json' }; }
+    var API = window.__API_SILVER__ || (window.location.hostname === 'localhost' ? 'http://localhost:10004' : '');
+    var token = localStorage.getItem('abitat_token') || '';
 
-    window.updateWorkflowForm = function() {
-        var type = document.getElementById('wf-type').value;
-        document.getElementById('scan-opts').style.display = type==='scan' ? 'block' : 'none';
-        document.getElementById('pentest-opts').style.display = type==='pentest'||type==='full' ? 'block' : 'none';
-        document.getElementById('ai-opts').style.display = type==='ai' ? 'block' : 'none';
+    window.sendOrch = function() {
+        var input = document.getElementById('orch-input');
+        var cmd = input.value.trim();
+        if (!cmd) return;
+        var chat = document.getElementById('orch-chat-box');
+        chat.innerHTML += '<div class="chat-msg user">' + cmd + '</div>';
+        fetch('/api/Orchestration/ai/analyze', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ context: 'orchestration', data: cmd })
+        }).then(function(r) { return r.json(); })
+          .then(function(d) { chat.innerHTML += '<div class="chat-msg system">' + (d.analysis || 'Done.') + '</div>'; chat.scrollTop = chat.scrollHeight; })
+          .catch(function() { chat.innerHTML += '<div class="chat-msg system">Connection failed.</div>'; });
+        input.value = '';
+        chat.scrollTop = chat.scrollHeight;
     };
-
-    window.executeWorkflow = function() {
-        var type = document.getElementById('wf-type').value;
-        var target = document.getElementById('wf-target').value.trim();
-        var result = document.getElementById('workflow-result');
-        if (!target) { result.innerHTML = '<pre style="color:var(--accent-red);">ERROR: Target is required</pre>'; return; }
-
-        var url = API + '/api/Orchestration/workflow/';
-        var body = { Target: target };
-
-        if (type === 'scan') {
-            url += 'scan';
-            body.ScanType = document.getElementById('scan-type').value;
-        } else if (type === 'pentest') {
-            url += 'pentest';
-            body.ExploitName = document.getElementById('exploit-name').value;
-            body.Image = document.getElementById('wf-image').value;
-        } else if (type === 'full') {
-            url += 'full';
-            body.ExploitName = document.getElementById('exploit-name').value;
-            body.Image = document.getElementById('wf-image').value;
-        } else if (type === 'ai') {
-            url = API + '/api/Orchestration/ai/analyze';
-            body = { Context: document.getElementById('ai-context').value, Data: document.getElementById('ai-data').value };
-        }
-
-        result.innerHTML = '<span style="color:var(--accent-orange);">Executing '+type.toUpperCase()+' workflow...</span>';
-        fetch(url, { method:'POST', headers:headers(), body:JSON.stringify(body) })
-            .then(function(r) { return r.json(); })
-            .then(function(d) { result.innerHTML = '<pre style="color:var(--accent-green);font-size:10px;">'+JSON.stringify(d,null,2)+'</pre>'; })
-            .catch(function() { result.innerHTML = '<pre style="color:var(--accent-red);">CONNECTION FAILED</pre>'; });
-    };
-
-    window.getAgentsStatus = function() {
-        var result = document.getElementById('workflow-result');
-        result.innerHTML = '<span style="color:var(--accent-orange);">Fetching agents status...</span>';
-        fetch(API + '/api/Orchestration/status', { headers:headers() })
-            .then(function(r) { return r.json(); })
-            .then(function(d) { result.innerHTML = '<pre style="color:var(--accent-green);font-size:10px;">'+JSON.stringify(d,null,2)+'</pre>'; })
-            .catch(function() { result.innerHTML = '<pre style="color:var(--accent-red);">FAILED</pre>'; });
-    };
-
-    window.searchEvents = function() {
-        var q = document.getElementById('events-query').value.trim() || 'workflow';
-        var result = document.getElementById('workflow-result');
-        result.innerHTML = '<span style="color:var(--accent-orange);">Searching events for "'+q+'"...</span>';
-        fetch(API + '/api/Orchestration/events?query=' + encodeURIComponent(q), { headers:headers() })
-            .then(function(r) { return r.json(); })
-            .then(function(d) { result.innerHTML = '<pre style="color:var(--accent-green);font-size:10px;">'+JSON.stringify(d,null,2)+'</pre>'; })
-            .catch(function() { result.innerHTML = '<pre style="color:var(--accent-red);">FAILED</pre>'; });
-    };
-
-    window.cleanupExpired = function() {
-        var result = document.getElementById('workflow-result');
-        result.innerHTML = '<span style="color:var(--accent-orange);">Cleaning up expired labs...</span>';
-        fetch(API + '/api/Orchestration/agents/violet/cleanup', { method:'POST', headers:headers() })
-            .then(function(r) { return r.json(); })
-            .then(function(d) { result.innerHTML = '<pre style="color:var(--accent-green);font-size:10px;">'+JSON.stringify(d,null,2)+'</pre>'; })
-            .catch(function() { result.innerHTML = '<pre style="color:var(--accent-red);">FAILED</pre>'; });
-    };
-
-    var savedTarget = localStorage.getItem('red_target');
-    if (savedTarget) { document.getElementById('wf-target').value = savedTarget; }
 })();
 </script>

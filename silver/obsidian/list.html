@@ -1,125 +1,64 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
 
-<div class="silver-card" style="max-width:100%;">
-    <div class="card-header">
-        <h3>OBSIDIAN KNOWLEDGE VAULT</h3>
-        <span class="panel-tag" style="background:rgba(107,164,214,0.1);color:var(--accent-blue);border-color:rgba(107,164,214,0.2);">CRUD</span>
-    </div>
-
-    <div class="silver-stats-strip">
-        <div class="strip-card">
-            <span class="strip-label">VAULTS</span><span class="strip-value">4</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-blue);"></div></div>
-        </div>
-        <div class="strip-card">
-            <span class="strip-label">TOTAL NOTES</span><span class="strip-value" id="obs-total">--</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-orange);"></div></div>
-        </div>
-        <div class="strip-card">
-            <span class="strip-label">HEALTH</span><span class="strip-value" id="obs-health">--</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-green);"></div></div>
-        </div>
-        <div class="strip-card" onclick="document.getElementById('note-content').focus()">
-            <span class="strip-label">NEW NOTE</span><span class="strip-value">+</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-violet);"></div></div>
+<div class="silver-dashboard">
+    <div class="silver-topbar">
+        <span class="silver-logo">OBSIDIAN VAULT</span>
+        <div class="silver-telemetry">
+            <span style="font-size:9px;color:var(--accent-green);" id="obsidian-health">CHECKING...</span>
         </div>
     </div>
 
-    <div class="obsidian-layout">
-        <div class="obsidian-left">
-            <div class="section-title">CREATE NOTE</div>
-            <div class="form-group"><label>VAULT</label><select id="note-vault" class="form-control">
-                <option value="ai-analysis">AI Analysis</option>
-                <option value="scans">Scans</option>
-                <option value="exploits">Exploits</option>
-                <option value="events">Events</option>
-            </select></div>
-            <div class="form-group"><label>CONTENT</label><textarea id="note-content" class="form-control" rows="4" placeholder="Note content..."></textarea></div>
-            <button class="action-btn btn-primary" onclick="createNote()">APPEND NOTE</button>
-            <div id="create-result" style="margin-top:8px;font-size:10px;"></div>
-        </div>
-        <div class="obsidian-right">
-            <div class="section-title">SEARCH & READ</div>
-            <div class="obsidian-search-row">
-                <select id="search-vault" class="form-control" style="width:auto;">
-                    <option value="ai-analysis">AI Analysis</option>
-                    <option value="scans">Scans</option>
-                    <option value="exploits">Exploits</option>
-                    <option value="events">Events</option>
-                </select>
-                <input type="text" id="search-query" class="form-control" placeholder="Search query..." onkeypress="if(event.key==='Enter')searchNotes()">
-                <button class="action-btn btn-primary" onclick="searchNotes()" style="width:auto;">SEARCH</button>
-            </div>
-            <div class="obsidian-read-row">
-                <input type="text" id="read-note-id" class="form-control" placeholder="Note ID to read...">
-                <button class="action-btn btn-secondary" onclick="readNote()" style="width:auto;">READ</button>
-            </div>
-            <div id="search-results" class="notes-list">
-                <div style="text-align:center;padding:20px;color:var(--text-muted);">Search to find notes.</div>
-            </div>
-        </div>
+    <div class="obsidian-read-row">
+        <input type="text" id="vault-name" class="form-control" placeholder="Vault name (ai-analysis)" value="ai-analysis" style="flex:1;">
+        <input type="text" id="note-id" class="form-control" placeholder="Note ID" style="flex:1;">
+        <button class="action-btn btn-primary" onclick="readNote()">READ</button>
+    </div>
+
+    <div class="search-row" style="margin-bottom:8px;">
+        <input type="text" id="search-vault" class="form-control" placeholder="Vault" value="ai-analysis" style="flex:1;">
+        <input type="text" id="search-query" class="form-control" placeholder="Search query..." style="flex:2;">
+        <button class="action-btn" onclick="searchNotes()">SEARCH</button>
+    </div>
+
+    <div id="obsidian-result" class="notes-list">
+        <div style="text-align:center;padding:10px;color:var(--text-muted);">Use search to find notes.</div>
     </div>
 </div>
 
 <script>
 (function() {
-    var API = window.__API_SILVER__ || 'http://localhost:5076';
-    function token() { return localStorage.getItem('abitat_token')||''; }
-    function headers() { return { 'Authorization':'Bearer '+token(), 'Content-Type':'application/json' }; }
+    var API = window.__API_SILVER__ || (window.location.hostname === 'localhost' ? 'http://localhost:10004' : '');
+    var token = localStorage.getItem('abitat_token') || '';
+    var headers = { 'Authorization': 'Bearer ' + token };
 
-    fetch(API + '/api/Obsidian/health', { headers:headers() })
+    fetch('/api/Obsidian/health', { headers: headers })
         .then(function(r) { return r.json(); })
-        .then(function(d) { document.getElementById('obs-health').textContent = d.status==='healthy'?'HEALTHY':'OFFLINE'; })
-        .catch(function() { document.getElementById('obs-health').textContent = 'OFFLINE'; });
+        .then(function(d) { document.getElementById('obsidian-health').textContent = d.status === 'healthy' ? 'CONNECTED' : 'OFFLINE'; })
+        .catch(function() { document.getElementById('obsidian-health').textContent = 'OFFLINE'; });
 
-    window.createNote = function() {
-        var vault = document.getElementById('note-vault').value;
-        var content = document.getElementById('note-content').value.trim();
-        var result = document.getElementById('create-result');
-        if (!content) { result.innerHTML = '<span style="color:var(--accent-red);">Content required.</span>'; return; }
-        result.innerHTML = '<span style="color:var(--accent-orange);">Appending...</span>';
-        fetch(API + '/api/Obsidian/vaults/' + vault + '/notes', { method:'POST', headers:headers(), body:JSON.stringify({Content:content}) })
-            .then(function(r) { return r.json(); })
-            .then(function(d) { result.innerHTML = '<span style="color:var(--accent-green);">Note created: '+d.noteId+'</span>'; document.getElementById('note-content').value=''; })
-            .catch(function() { result.innerHTML = '<span style="color:var(--accent-red);">Failed.</span>'; });
+    window.readNote = function() {
+        var vault = document.getElementById('vault-name').value;
+        var noteId = document.getElementById('note-id').value;
+        if (!vault || !noteId) return;
+        fetch('/api/Obsidian/vaults/' + vault + '/notes/' + noteId, { headers: headers })
+            .then(function(r) { return r.text(); })
+            .then(function(html) { document.getElementById('obsidian-result').innerHTML = '<div class="note-item expanded"><div class="note-item-content">' + html + '</div></div>'; });
     };
 
     window.searchNotes = function() {
         var vault = document.getElementById('search-vault').value;
-        var query = document.getElementById('search-query').value.trim();
-        var container = document.getElementById('search-results');
-        if (!query) { container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Enter a query.</div>'; return; }
-        container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">Searching...</div>';
-        fetch(API + '/api/Obsidian/vaults/' + vault + '/search?query=' + encodeURIComponent(query), { headers:headers() })
+        var query = document.getElementById('search-query').value;
+        if (!vault || !query) return;
+        document.getElementById('obsidian-result').innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">Searching...</div>';
+        fetch('/api/Obsidian/vaults/' + vault + '/search?query=' + encodeURIComponent(query), { headers: headers })
             .then(function(r) { return r.json(); })
-            .then(function(d) {
-                document.getElementById('obs-total').textContent = d.count||'0';
-                if (d.notes && d.notes.length>0) {
-                    container.innerHTML = d.notes.map(function(n) {
-                        return '<div class="note-item" onclick="this.classList.toggle(\'expanded\')"><div class="note-item-header"><span class="note-item-id">'+(n.id||'Note')+'</span><span class="note-item-vault">'+vault+'</span></div><div class="note-item-content">'+(n.content?n.content.substring(0,150):'')+'</div><div class="note-item-full"><pre style="font-size:9px;color:var(--text-main);white-space:pre-wrap;">'+(n.content||'')+'</pre></div></div>';
-                    }).join('');
-                } else { container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">No results.</div>'; }
-            })
-            .catch(function() { container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--accent-red);">Search failed.</div>'; });
-    };
-
-    window.readNote = function() {
-        var vault = document.getElementById('search-vault').value;
-        var noteId = document.getElementById('read-note-id').value.trim();
-        var container = document.getElementById('search-results');
-        if (!noteId) return;
-        container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">Reading note '+noteId+'...</div>';
-        fetch(API + '/api/Obsidian/vaults/' + vault + '/notes/' + noteId, { headers:headers() })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                if (d.content) {
-                    container.innerHTML = '<div class="note-item expanded"><div class="note-item-header"><span class="note-item-id">'+noteId+'</span><span class="note-item-vault">'+vault+'</span></div><div class="note-item-content">'+d.content.substring(0,150)+'</div><div class="note-item-full"><pre style="font-size:9px;color:var(--text-main);white-space:pre-wrap;">'+d.content+'</pre></div></div>';
-                } else { container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Note not found.</div>'; }
-            })
-            .catch(function() { container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--accent-red);">Read failed.</div>'; });
+            .then(function(notes) {
+                if (!Array.isArray(notes)) notes = [];
+                document.getElementById('obsidian-result').innerHTML = notes.map(function(n) {
+                    return '<div class="note-item"><div class="note-item-header"><span class="note-item-id">' + (n.noteId || n.id || '') + '</span><span class="note-item-vault">' + vault + '</span></div><div class="note-item-content">' + (n.title || n.content || '').substring(0, 200) + '</div></div>';
+                }).join('') || '<div style="text-align:center;padding:10px;color:var(--text-muted);">No results.</div>';
+            });
     };
 })();
 </script>

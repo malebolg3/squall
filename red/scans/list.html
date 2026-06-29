@@ -1,115 +1,53 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
 
-<div class="red-card">
-    <div class="card-header">
-        <h3>SCAN HISTORY</h3>
-        <span class="panel-tag" style="background:rgba(107,164,214,0.1);color:var(--accent-blue);border-color:rgba(107,164,214,0.2);">SCANNER</span>
+<div class="red-dashboard">
+    <div class="red-topbar">
+        <span class="red-logo">RED SCANS</span>
+        <div class="red-telemetry">
+            <button class="action-btn" hx-get="/red/monitor.html" hx-target="#panel-red" hx-swap="innerHTML">MONITOR</button>
+            <button class="action-btn" hx-get="/red/tool.html" hx-target="#panel-red" hx-swap="innerHTML">TOOLS</button>
+            <button class="action-btn" hx-get="/red/exploits/list.html" hx-target="#panel-red" hx-swap="innerHTML">EXPLOITS</button>
+        </div>
     </div>
 
     <div class="red-stats-strip">
-        <div class="strip-card">
-            <span class="strip-label">TOTAL SCANS</span>
-            <span class="strip-value" id="scan-total">--</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-blue);"></div></div>
-        </div>
-        <div class="strip-card">
-            <span class="strip-label">RUNNING</span>
-            <span class="strip-value" id="scan-running">--</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-green);"></div></div>
-        </div>
-        <div class="strip-card" onclick="window.openModal && openModal('scan','nmap')">
-            <span class="strip-label">NEW SCAN</span>
-            <span class="strip-value">+</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-orange);"></div></div>
-        </div>
+        <div class="strip-card"><span class="strip-label">TOTAL</span><span class="strip-value" id="scan-total">0</span></div>
+        <div class="strip-card"><span class="strip-label">COMPLETED</span><span class="strip-value txt-green" id="scan-completed">0</span></div>
+        <div class="strip-card"><span class="strip-label">RUNNING</span><span class="strip-value txt-orange" id="scan-running">0</span></div>
+        <div class="strip-card"><span class="strip-label">FAILED</span><span class="strip-value txt-red" id="scan-failed">0</span></div>
     </div>
 
-    <div style="display:flex;gap:8px;margin-bottom:16px;">
-        <input type="text" id="scan-filter" placeholder="Filter by target or type..." class="form-control" style="margin:0;" onkeyup="filterScans()">
-        <select id="scan-status-filter" class="form-control" style="width:auto;margin:0;" onchange="filterScans()">
-            <option value="all">ALL</option>
-            <option value="Running">RUNNING</option>
-            <option value="Completed">COMPLETED</option>
-            <option value="Failed">FAILED</option>
-            <option value="Stopped">STOPPED</option>
-        </select>
+    <div class="red-main-layout">
+        <table class="red-table">
+            <thead>
+                <tr><th>ID</th><th>TARGET</th><th>TYPE</th><th>STATUS</th><th>CREATED</th><th>ACTIONS</th></tr>
+            </thead>
+            <tbody id="scans-list" hx-get="/api/Scan" hx-trigger="load, every 20s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML swap:0.3s">
+                <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">Loading scans...</td></tr>
+            </tbody>
+        </table>
     </div>
-
-    <table class="red-table">
-        <thead><tr><th>ID</th><th>TARGET</th><th>TYPE</th><th>STATUS</th><th>FINDINGS</th><th>STARTED</th><th>ACTIONS</th></tr></thead>
-        <tbody id="scans-list" hx-get="http://localhost:5074/api/Scan" hx-trigger="load, every 20s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML swap:0.3s">
-            <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">Loading scan sessions...</td></tr>
-        </tbody>
-    </table>
 </div>
 
 <script>
-    var API_BASE = window.__API_RED__ || 'http://localhost:5074';
-    var allScans = [];
-
-    function getToken() {
-        return localStorage.getItem('abitat_token') || '';
-    }
+(function() {
+    var API_BASE = window.__API_RED__ || (window.location.hostname === 'localhost' ? 'http://localhost:10002' : '');
+    var token = localStorage.getItem('abitat_token') || '';
+    var headers = { 'Authorization': 'Bearer ' + token };
 
     document.body.addEventListener('htmx:afterRequest', function(evt) {
-        if (evt.detail.target.id === 'scans-list' && evt.detail.requestConfig.method === 'GET') {
+        if (evt.detail.target.id === 'scans-list') {
             try {
-                var resp = JSON.parse(evt.detail.xhr.responseText);
-                var data = resp.data || resp.items || resp || [];
-                if (Array.isArray(data)) {
-                    allScans = data;
-                    document.getElementById('scan-total').textContent = data.length;
-                    document.getElementById('scan-running').textContent = data.filter(function(e){ return e.status === 'Running'; }).length;
-                    renderScans(allScans);
-                } else if (resp.items) {
-                    allScans = resp.items;
-                    document.getElementById('scan-total').textContent = resp.totalCount || resp.items.length;
-                    document.getElementById('scan-running').textContent = resp.items.filter(function(e){ return e.status === 'Running'; }).length;
-                    renderScans(resp.items);
-                }
+                var data = JSON.parse(evt.detail.xhr.responseText);
+                var scans = data.scans || data || [];
+                if (!Array.isArray(scans)) scans = [];
+                document.getElementById('scan-total').textContent = scans.length;
+                document.getElementById('scan-completed').textContent = scans.filter(function(s) { return (s.status||'').toLowerCase() === 'completed'; }).length;
+                document.getElementById('scan-running').textContent = scans.filter(function(s) { return (s.status||'').toLowerCase() === 'running'; }).length;
+                document.getElementById('scan-failed').textContent = scans.filter(function(s) { return (s.status||'').toLowerCase() === 'failed'; }).length;
             } catch(e) {}
         }
     });
-
-    function renderScans(data) {
-        var list = document.getElementById('scans-list');
-        if (data.length > 0) {
-            list.innerHTML = data.map(function(e) {
-                return '<tr>' +
-                    '<td><code>' + (e.scanId || 'N/A').substring(0, 8) + '</code></td>' +
-                    '<td>' + (e.target || 'N/A') + '</td>' +
-                    '<td>' + (e.scanType || 'N/A') + '</td>' +
-                    '<td style="color:' + (e.status === 'Running' ? 'var(--accent-green)' : e.status === 'Failed' ? 'var(--accent-red)' : e.status === 'Stopped' ? 'var(--text-muted)' : 'var(--accent-violet)') + ';font-weight:700;">' + (e.status || 'N/A').toUpperCase() + '</td>' +
-                    '<td>' + (e.findings ? e.findings.length : (e.findingsCount || 0)) + '</td>' +
-                    '<td>' + (e.startedAt ? new Date(e.startedAt).toLocaleTimeString('pt-BR') : '--') + '</td>' +
-                    '<td>' +
-                        '<button class="chip-btn" onclick="window.openModal && openModal(\'scan\',\'' + (e.scanType || 'nmap') + '\')">RERUN</button> ' +
-                        '<button class="chip-btn danger" hx-post="' + API_BASE + '/api/Scan/' + e.scanId + '/stop" hx-headers=\'js:{"Authorization":"Bearer "+getToken()}\' hx-target="#scans-list" hx-swap="innerHTML swap:0.3s">STOP</button>' +
-                    '</td></tr>';
-            }).join('');
-            htmx.process(list);
-        } else {
-            list.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-muted);">No scans executed.</td></tr>';
-        }
-    }
-
-    function filterScans() {
-        var text = (document.getElementById('scan-filter').value || '').toLowerCase();
-        var status = document.getElementById('scan-status-filter').value;
-        var filtered = allScans.filter(function(e) {
-            var matchText = !text || (e.target || '').toLowerCase().includes(text) || (e.scanType || '').toLowerCase().includes(text);
-            var matchStatus = status === 'all' || e.status === status;
-            return matchText && matchStatus;
-        });
-        renderScans(filtered);
-    }
-
-    document.body.addEventListener('htmx:afterRequest', function(evt) {
-        if (evt.detail.target.id === 'scans-list' && evt.detail.requestConfig.method !== 'GET') {
-            htmx.trigger('#scans-list', 'load');
-        }
-    });
+})();
 </script>

@@ -1,45 +1,33 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
 
-<div class="blue-card">
-    <div class="card-header">
-        <h3>VIOLET LABS</h3>
-        <span class="panel-tag" style="background:rgba(168,157,212,0.1);color:var(--accent-violet);border-color:rgba(168,157,212,0.2);">OBSERVE</span>
+<div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-size:10px;font-weight:700;color:var(--accent-violet);">VIOLET LABS</span>
+        <span style="font-size:8px;color:var(--text-muted);" id="violet-update-time"></span>
     </div>
-    <div class="blue-stats-strip">
-        <div class="strip-card"><span class="strip-label">TOTAL LABS</span><span class="strip-value" id="vlab-total">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-violet);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">ONLINE</span><span class="strip-value" id="vlab-online">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-green);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">PROVISIONING</span><span class="strip-value" id="vlab-starting">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-orange);"></div></div></div>
-    </div>
-    <div class="violet-lab-grid" id="violet-lab-observe" hx-get="http://localhost:5075/api/Violet/labs" hx-trigger="load, every 15s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
-        <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading Violet labs...</div>
+    <div class="violet-lab-grid" id="violet-lab-observe" hx-get="/api/Violet/labs" hx-trigger="load, every 15s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
+        <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading labs...</div>
     </div>
 </div>
 
 <script>
+(function() {
     document.body.addEventListener('htmx:afterRequest', function(evt) {
         if (evt.detail.target.id === 'violet-lab-observe') {
             try {
-                var resp = JSON.parse(evt.detail.xhr.responseText);
-                var labs = resp.data || resp || [];
-                if (Array.isArray(labs)) {
-                    document.getElementById('vlab-total').textContent = labs.length;
-                    document.getElementById('vlab-online').textContent = labs.filter(function(l){ return l.status === 'online' || l.status === 'running'; }).length;
-                    document.getElementById('vlab-starting').textContent = labs.filter(function(l){ return l.status === 'starting' || l.status === 'provisioning'; }).length;
-                    evt.detail.target.innerHTML = labs.length > 0 ? labs.map(function(l) {
-                        return '<div class="vlab-item">' +
-                            '<div style="display:flex;justify-content:space-between;align-items:center;"><span class="vlab-name">' + (l.name || l.containerId || 'N/A') + '</span><span class="vlab-os">' + (l.os || l.image || 'N/A') + '</span></div>' +
-                            '<div class="vlab-info"><span>IP: ' + (l.ip || l.ipAddress || '--') + '</span><span>UPTIME: ' + (l.uptime || '--') + '</span></div>' +
-                            '<div class="vlab-info"><span>PORTS: ' + (l.ports || '--') + '</span><span>EXPIRES: ' + (l.expiresAt ? new Date(l.expiresAt).toLocaleString('pt-BR') : '--') + '</span></div>' +
-                            '<div class="vlab-status"><span class="vlab-dot ' + (l.status === 'online' || l.status === 'running' ? 'online' : l.status === 'starting' || l.status === 'provisioning' ? 'starting' : 'offline') + '"></span>' + (l.status || 'unknown').toUpperCase() + '</div>' +
+                var labs = JSON.parse(evt.detail.xhr.responseText);
+                if (!Array.isArray(labs)) labs = [];
+                evt.detail.target.innerHTML = labs.map(function(l) {
+                    return '<div class="vlab-item">' +
+                        '<span class="vlab-name">' + (l.name || l.id) + '</span>' +
+                        '<span class="vlab-os">' + (l.image || 'kali') + '</span>' +
+                        '<div class="vlab-info"><span>' + (l.ip || '0.0.0.0') + '</span><span class="vlab-dot ' + (l.status === 'online' ? 'online' : 'offline') + '"></span></div>' +
                         '</div>';
-                    }).join('') : '<div style="text-align:center;padding:20px;color:var(--text-muted);">No labs deployed.</div>';
-                }
-            } catch(e) {
-                evt.detail.target.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Violet service unavailable.</div>';
-            }
+                }).join('') || '<div style="text-align:center;padding:10px;color:var(--text-muted);">No active labs.</div>';
+                document.getElementById('violet-update-time').textContent = new Date().toLocaleTimeString();
+            } catch(e) {}
         }
     });
+})();
 </script>

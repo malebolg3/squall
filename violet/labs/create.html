@@ -1,72 +1,48 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
 
-<div class="violet-card" style="max-width:550px;">
-    <div class="card-header">
-        <h3 id="lab-form-title">NEW LAB</h3>
-        <span class="panel-tag">VIOLET LAB</span>
-    </div>
-
-    <form id="lab-form" hx-target="#lab-form-result" hx-swap="innerHTML">
-        <input type="hidden" id="lab-id" name="id">
-        <div class="form-group"><label>LAB NAME</label><input type="text" id="lab-name" name="name" class="form-control" required autocomplete="off"></div>
-        <div class="form-group"><label>DOCKER IMAGE</label><input type="text" id="lab-image" name="image" class="form-control" value="kalilinux/kali-rolling:latest" required></div>
-        <div class="form-group"><label>NETWORK MODE</label><select id="lab-network" name="network" class="form-control"><option value="isolated">ISOLATED</option><option value="bridge">BRIDGE</option><option value="nat">NAT</option></select></div>
-        <div class="flex-row flex-end">
-            <button type="button" class="action-btn btn-secondary" style="width:auto;" hx-get="/violet/labs/list.html" hx-target="#panel-violet" hx-swap="innerHTML">CANCEL</button>
-            <button type="submit" class="action-btn btn-primary" style="background:var(--accent-violet);">DEPLOY</button>
+<div class="violet-dashboard">
+    <div class="violet-topbar">
+        <span class="violet-logo">CREATE LAB</span>
+        <div class="violet-telemetry">
+            <button class="action-btn" hx-get="/violet/labs/list.html" hx-target="#panel-violet" hx-swap="innerHTML">LIST</button>
         </div>
-    </form>
-    <div id="lab-form-result" style="margin-top:12px;font-size:11px;"></div>
+    </div>
+    <div class="create-layout">
+        <div class="violet-card">
+            <div class="card-header"><h3>NEW INSTANCE</h3></div>
+            <form id="lab-create-form">
+                <div class="form-group"><label>NAME</label><input type="text" name="name" class="form-control" required></div>
+                <div class="form-group"><label>IMAGE</label><input type="text" name="image" class="form-control" value="kalilinux/kali-rolling:latest"></div>
+                <div class="modal-actions" style="margin-top:16px;">
+                    <button type="submit" class="action-btn btn-primary">DEPLOY</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>
-    (function() {
-        var params = new URLSearchParams(window.location.search);
-        var id = params.get('id');
-        var form = document.getElementById('lab-form');
-        var token = localStorage.getItem('abitat_token');
-        var headers = JSON.stringify({ 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' });
+(function() {
+    var token = localStorage.getItem('abitat_token') || '';
+    document.getElementById('lab-create-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var form = this;
+        var data = new FormData(form);
+        var json = {};
+        data.forEach(function(v, k) { json[k] = v; });
 
-        if (id) {
-            document.getElementById('lab-form-title').textContent = 'EDIT LAB';
-            form.setAttribute('hx-put', 'http://localhost:5075/api/Lab/' + id);
-            fetch('http://localhost:5075/api/Lab/' + id, { headers: { 'Authorization': 'Bearer ' + token } })
-                .then(function(r) { return r.json(); })
-                .then(function(d) {
-                    if (d.success && d.data) {
-                        document.getElementById('lab-id').value = id;
-                        document.getElementById('lab-name').value = d.data.name || '';
-                        document.getElementById('lab-image').value = d.data.image || '';
-                        document.getElementById('lab-network').value = d.data.network || 'isolated';
-                    }
-                });
-        } else {
-            form.setAttribute('hx-post', 'http://localhost:5075/api/Lab');
-        }
-        form.setAttribute('hx-headers', headers);
-        htmx.process(form);
-    })();
-
-    document.getElementById('lab-form').addEventListener('htmx:beforeRequest', function(evt) {
-        var inputs = evt.detail.elt;
-        var fd = new FormData(inputs);
-        var obj = {};
-        fd.forEach(function(value, key) { if (key !== 'id') obj[key] = value; });
-        evt.detail.xhr.send(JSON.stringify(obj));
-        evt.preventDefault();
+        var id = json.name.toLowerCase().replace(/\s+/g, '-');
+        form.setAttribute('hx-put', '/api/Lab/' + id);
+        fetch('/api/Lab/' + id, {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(json)
+        }).then(function() {
+            form.setAttribute('hx-post', '/api/Lab');
+            form.setAttribute('hx-headers', JSON.stringify({Authorization:'Bearer '+token}));
+            htmx.trigger('#labs-list', 'labUpdated');
+        });
     });
-
-    document.getElementById('lab-form').addEventListener('htmx:afterRequest', function(evt) {
-        var resp = JSON.parse(evt.detail.xhr.responseText);
-        var resDiv = document.getElementById('lab-form-result');
-        if (resp.success) {
-            resDiv.innerHTML = '<div style="color:var(--accent-green);font-weight:bold;">LAB DEPLOYED SUCCESSFULLY</div>';
-            setTimeout(function() { htmx.ajax('GET', '/violet/labs/list.html', { target: '#panel-violet', swap: 'innerHTML' }); }, 600);
-        } else {
-            resDiv.innerHTML = '<div style="color:var(--accent-red);font-weight:bold;">ERROR: ' + (resp.message || 'Deployment failed') + '</div>';
-        }
-    });
+})();
 </script>

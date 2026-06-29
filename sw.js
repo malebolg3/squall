@@ -1,8 +1,12 @@
-/*<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
-<!-- Copyright (C) 2026 Th1eros -->*/
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Th1eros
 
-const CACHE = 'malebolge-v1.1';
-const URLS = [
+'use strict';
+
+const CACHE_NAME = 'malebolge-v1.4.0';
+const CACHE_ALLOW_LIST = [CACHE_NAME];
+
+const PRE_CACHE_URLS = [
   '/',
   '/index.html',
   '/css/style.css',
@@ -46,25 +50,137 @@ const URLS = [
   '/silver/orchestration/run.html'
 ];
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(URLS))
+const API_PATH_PATTERN = /\/api\//;
+const AUTH_PATH_PATTERN = /\/Auth\//;
+const STATIC_EXTENSIONS = /\.(?:html|css|js|png|jpg|svg|ico|json|woff2?)$/;
+
+self.addEventListener('install', function(event) {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(function(cache) {
+        return cache.addAll(PRE_CACHE_URLS);
+      })
+      .then(function() {
+        return self.skipWaiting();
+      })
   );
 });
 
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  if (e.request.url.includes('/api/')) return;
-  
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
+self.addEventListener('activate', function(event) {
+  event.waitUntil(
+    caches.keys()
+      .then(function(cacheNames) {
+        return Promise.all(
+          cacheNames.map(function(cacheName) {
+            if (CACHE_ALLOW_LIST.indexOf(cacheName) === -1) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(function() {
+        return self.clients.claim();
+      })
   );
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys => 
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
+self.addEventListener('fetch', function(event) {
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  if (API_PATH_PATTERN.test(event.request.url)) {
+    return;
+  }
+
+  if (AUTH_PATH_PATTERN.test(event.request.url)) {
+    return;
+  }
+
+  if (event.request.mode === 'navigate' && !STATIC_EXTENSIONS.test(event.request.url)) {
+    event.respondWith(
+      fetch(event.request)
+        .catch(function() {
+          return caches.match('/index.html');
+        })
+    );
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request)
+      .then(function(cachedResponse) {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        return fetch(event.request)
+          .then(function(response) {
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+
+            if (STATIC_EXTENSIONS.test(event.request.url)) {
+              var responseClone = response.clone();
+              caches.open(CACHE_NAME)
+                .then(function(cache) {
+                  cache.put(event.request, responseClone);
+                });
+            }
+
+            return response;
+          })
+          .catch(function() {
+            if (event.request.mode === 'navigate') {
+              return caches.match('/index.html');
+            }
+
+            if (event.request.url.match(/\.(png|jpg|svg|ico)$/)) {
+              return caches.match('/Male.png');
+            }
+
+            return new Response('Offline - Resource not available', {
+              status: 503,
+              statusText: 'Service Unavailable',
+              headers: { 'Content-Type': 'text/plain' }
+            });
+          });
+      })
   );
+});
+
+self.addEventListener('message', function(event) {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+
+  if (event.data && event.data.action === 'clearCache') {
+    caches.keys()
+      .then(function(cacheNames) {
+        return Promise.all(
+          cacheNames.map(function(cacheName) {
+            return caches.delete(cacheName);
+          })
+        );
+      })
+      .then(function() {
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({ action: 'cacheCleared' });
+        }
+      });
+  }
+
+  if (event.data && event.data.action === 'getVersion') {
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage({ version: CACHE_NAME });
+    }
+  }
+});
+
+self.addEventListener('error', function(event) {
+  console.error('[SW] Unhandled error:', event.error);
+});
+
+self.addEventListener('unhandledrejection', function(event) {
+  console.error('[SW] Unhandled rejection:', event.reason);
 });

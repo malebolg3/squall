@@ -1,51 +1,22 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
- 
-<div class="silver-card" style="max-width:100%;">
-    <div class="card-header">
-        <h3>SILVER AI MONITOR</h3>
-        <span class="panel-tag" style="background:rgba(122,184,138,0.1);color:var(--accent-green);border-color:rgba(122,184,138,0.2);">OBSERVE</span>
-    </div>
 
-    <div class="silver-stats-strip">
-        <div class="strip-card"><span class="strip-label">AGENTS</span><span class="strip-value" id="mon-agents">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-silver);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">LABS</span><span class="strip-value" id="mon-labs">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-violet);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">EVENTS</span><span class="strip-value" id="mon-events">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-orange);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">OBSIDIAN</span><span class="strip-value" id="mon-obsidian">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-green);"></div></div></div>
+<div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-size:10px;font-weight:700;color:var(--accent-silver);">SILVER AGENTS</span>
+        <span style="font-size:8px;color:var(--text-muted);" id="silver-update-time"></span>
     </div>
-
     <div class="monitor-grid">
         <div class="monitor-panel">
-            <div class="section-title">AGENTS STATUS</div>
-            <div id="mon-agents-list" hx-get="http://localhost:5076/api/Orchestration/status" hx-trigger="load, every 15s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
-                <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading...</div>
+            <div class="section-title" style="color:var(--accent-silver);">AGENTS</div>
+            <div id="mon-agents-list" hx-get="/api/Orchestration/status" hx-trigger="load, every 15s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
+                <div style="text-align:center;padding:10px;color:var(--text-muted);">Loading agents...</div>
             </div>
         </div>
         <div class="monitor-panel">
-            <div class="section-title">ACTIVE LABS</div>
-            <div id="mon-labs-list" hx-get="http://localhost:5076/api/Orchestration/agents/violet/labs" hx-trigger="load, every 20s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
-                <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading...</div>
-            </div>
-        </div>
-        <div class="monitor-panel">
-            <div class="section-title">SEARCH EVENTS</div>
-            <div style="display:flex;gap:6px;margin-bottom:8px;">
-                <input type="text" id="mon-events-query" class="form-control" placeholder="Search events..." onkeypress="if(event.key==='Enter')searchMonEvents()">
-                <button class="action-btn btn-primary" onclick="searchMonEvents()" style="width:auto;">SEARCH</button>
-            </div>
-            <div id="mon-events-list" class="mon-list">
-                <div style="text-align:center;padding:10px;color:var(--text-muted);">Enter a query.</div>
-            </div>
-        </div>
-        <div class="monitor-panel">
-            <div class="section-title">KNOWLEDGE SEARCH</div>
-            <div style="display:flex;gap:6px;margin-bottom:8px;">
-                <input type="text" id="mon-knowledge-query" class="form-control" placeholder="Search knowledge..." onkeypress="if(event.key==='Enter')searchMonKnowledge()">
-                <button class="action-btn btn-primary" onclick="searchMonKnowledge()" style="width:auto;">SEARCH</button>
-            </div>
-            <div id="mon-knowledge-list" class="mon-list">
-                <div style="text-align:center;padding:10px;color:var(--text-muted);">Enter a query.</div>
+            <div class="section-title" style="color:var(--accent-violet);">LABS</div>
+            <div id="mon-labs-list" hx-get="/api/Orchestration/agents/violet/labs" hx-trigger="load, every 20s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
+                <div style="text-align:center;padding:10px;color:var(--text-muted);">Loading labs...</div>
             </div>
         </div>
     </div>
@@ -53,67 +24,29 @@
 
 <script>
 (function() {
-    var API = window.__API_SILVER__ || 'http://localhost:5076';
-    function token() { return localStorage.getItem('abitat_token')||''; }
-    function headers() { return { 'Authorization':'Bearer '+token() }; }
-
-    window.searchMonEvents = function() {
-        var q = document.getElementById('mon-events-query').value.trim();
-        if (!q) return;
-        var container = document.getElementById('mon-events-list');
-        container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">Searching...</div>';
-        fetch(API + '/api/Orchestration/events?query='+encodeURIComponent(q), { headers:headers() })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                document.getElementById('mon-events').textContent = d.count||'0';
-                if (d.notes && d.notes.length>0) {
-                    container.innerHTML = d.notes.map(function(n) {
-                        return '<div class="mon-item"><div class="mon-item-title">'+(n.id||'Event')+'</div><div class="mon-item-content">'+(n.content?n.content.substring(0,120):'')+'</div></div>';
-                    }).join('');
-                } else { container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">No events.</div>'; }
-            })
-            .catch(function() { container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--accent-red);">Failed.</div>'; });
-    };
-
-    window.searchMonKnowledge = function() {
-        var q = document.getElementById('mon-knowledge-query').value.trim();
-        if (!q) return;
-        var container = document.getElementById('mon-knowledge-list');
-        container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">Searching...</div>';
-        fetch(API + '/api/Orchestration/knowledge/search?query='+encodeURIComponent(q), { headers:headers() })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                if (d.notes && d.notes.length>0) {
-                    container.innerHTML = d.notes.map(function(n) {
-                        return '<div class="mon-item"><div class="mon-item-title">'+(n.id||'Note')+'</div><div class="mon-item-content">'+(n.content?n.content.substring(0,120):'')+'</div></div>';
-                    }).join('');
-                } else { container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">No results.</div>'; }
-            })
-            .catch(function() { container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--accent-red);">Failed.</div>'; });
-    };
+    var API = window.__API_SILVER__ || (window.location.hostname === 'localhost' ? 'http://localhost:10004' : '');
+    var token = localStorage.getItem('abitat_token') || '';
 
     document.body.addEventListener('htmx:afterRequest', function(evt) {
         if (evt.detail.target.id === 'mon-agents-list') {
             try {
-                var d = JSON.parse(evt.detail.xhr.responseText);
-                var agents = d.agents||{};
-                document.getElementById('mon-agents').textContent = Object.keys(agents).length;
-                document.getElementById('mon-obsidian').textContent = d.obsidian==='healthy'?'ONLINE':'OFFLINE';
+                var data = JSON.parse(evt.detail.xhr.responseText);
+                var agents = data.agents || data || {};
                 evt.detail.target.innerHTML = Object.keys(agents).map(function(k) {
-                    return '<div class="mon-item"><div class="mon-item-title">'+k+'</div><div class="mon-item-content">'+agents[k]+'</div></div>';
-                }).join('');
+                    return '<div class="agent-row"><span class="agent-name">' + k + '</span><span class="agent-status">' + agents[k] + '</span></div>';
+                }).join('') || '<div style="text-align:center;padding:10px;color:var(--text-muted);">No agents.</div>';
             } catch(e) {}
         }
         if (evt.detail.target.id === 'mon-labs-list') {
             try {
-                var d = JSON.parse(evt.detail.xhr.responseText);
-                var labs = d.labs||[];
-                document.getElementById('mon-labs').textContent = labs.length;
-                evt.detail.target.innerHTML = labs.length>0 ? labs.map(function(l) {
-                    return '<div class="mon-item"><div class="mon-item-title">'+(l.name||l.labId)+'</div><div class="mon-item-content">Status: '+(l.status||'active')+'</div></div>';
-                }).join('') : '<div style="text-align:center;padding:10px;color:var(--text-muted);">No active labs.</div>';
+                var labs = JSON.parse(evt.detail.xhr.responseText);
+                if (!Array.isArray(labs)) labs = [];
+                evt.detail.target.innerHTML = labs.map(function(l) {
+                    return '<div class="lab-item"><span class="lab-name">' + (l.name || l.labId) + '</span><span class="lab-status active">' + (l.status || 'ACTIVE') + '</span></div>';
+                }).join('') || '<div style="text-align:center;padding:10px;color:var(--text-muted);">No labs.</div>';
             } catch(e) {}
         }
+        document.getElementById('silver-update-time').textContent = new Date().toLocaleTimeString();
     });
 })();
 </script>

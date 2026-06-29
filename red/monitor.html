@@ -1,107 +1,64 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
 
-<div class="red-card">
-    <div class="card-header">
-        <h3>RED OPERATIONS MONITOR</h3>
-        <span class="panel-tag" style="background:rgba(212,160,106,0.1);color:var(--accent-orange);border-color:rgba(212,160,106,0.2);">OBSERVE</span>
-    </div>
-
-    <div class="red-stats-strip">
-        <div class="strip-card"><span class="strip-label">ACTIVE SCANS</span><span class="strip-value" id="rmon-scans">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-orange);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">ACTIVE EXPLOITS</span><span class="strip-value" id="rmon-exploits">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-red);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">SESSIONS</span><span class="strip-value" id="rmon-sessions">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-green);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">FINDINGS</span><span class="strip-value" id="rmon-findings">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-violet);"></div></div></div>
-    </div>
-
-    <div class="monitor-section">
-        <div class="section-title">ACTIVE SCANS</div>
-        <div class="scan-list" id="red-scan-monitor" hx-get="http://localhost:5074/api/Scan" hx-trigger="load, every 20s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
-            <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading scans...</div>
+<div class="red-dashboard">
+    <div class="red-topbar">
+        <span class="red-logo">RED MONITOR</span>
+        <div class="red-telemetry">
+            <span class="txt-red">SCANS</span>
+            <span class="txt-orange">EXPLOITS</span>
         </div>
     </div>
 
-    <div class="monitor-section" style="margin-top:16px;">
-        <div class="section-title">ACTIVE EXPLOITS</div>
-        <div class="scan-list" id="red-exploit-monitor" hx-get="http://localhost:5074/api/Exploit/sessions" hx-trigger="load, every 15s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
-            <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading exploits...</div>
+    <div class="monitor-grid">
+        <div class="monitor-panel">
+            <div class="section-title scan">SCANS</div>
+            <div class="scan-list" id="red-scan-monitor" hx-get="/api/Scan" hx-trigger="load, every 20s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
+                <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading scans...</div>
+            </div>
+        </div>
+        <div class="monitor-panel">
+            <div class="section-title pent">EXPLOITS</div>
+            <div class="scan-list" id="red-exploit-monitor" hx-get="/api/Exploit/sessions" hx-trigger="load, every 15s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
+                <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading exploits...</div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    var API_BASE = window.__API_RED__ || 'http://localhost:5074';
-    var scanCount = 0;
-    var exploitCount = 0;
-    var sessionCount = 0;
-    var findingsCount = 0;
+(function() {
+    var API_BASE = window.__API_RED__ || (window.location.hostname === 'localhost' ? 'http://localhost:10002' : '');
+    var token = localStorage.getItem('abitat_token') || '';
+    var headers = { 'Authorization': 'Bearer ' + token };
 
     document.body.addEventListener('htmx:afterRequest', function(evt) {
         if (evt.detail.target.id === 'red-scan-monitor') {
             try {
-                var resp = JSON.parse(evt.detail.xhr.responseText);
-                var scans = resp.data || resp.items || resp || [];
-                if (Array.isArray(scans)) {
-                    scanCount = scans.length;
-                    findingsCount = scans.reduce(function(acc, s){ return acc + (s.findingsCount || (s.findings ? s.findings.length : 0)); }, 0);
-                    updateStats();
-                    evt.detail.target.innerHTML = scans.length > 0 ? scans.map(function(s) {
-                        return '<div class="scan-item">' +
-                            '<div style="display:flex;justify-content:space-between;"><span class="scan-target">' + (s.target || s.scanId || 'N/A') + '</span><span class="scan-status ' + (s.status ? s.status.toLowerCase() : 'stopped') + '">' + (s.status || 'STOPPED').toUpperCase() + '</span></div>' +
-                            '<div class="scan-progress"><div class="scan-progress-fill" style="width:' + (s.status === 'Completed' ? '100' : s.status === 'Running' ? '60' : '0') + '%;"></div></div>' +
-                            '<div class="scan-meta"><span>TYPE: ' + (s.scanType || 'N/A') + '</span><span>FINDINGS: ' + (s.findingsCount || (s.findings ? s.findings.length : 0)) + '</span><span>STARTED: ' + (s.startedAt ? new Date(s.startedAt).toLocaleTimeString('pt-BR') : '--') + '</span></div>' +
+                var data = JSON.parse(evt.detail.xhr.responseText);
+                var scans = data.scans || data || [];
+                if (!Array.isArray(scans)) scans = [];
+                evt.detail.target.innerHTML = scans.map(function(s) {
+                    return '<div class="scan-item">' +
+                        '<span class="scan-target">' + (s.target||s.id) + '</span>' +
+                        '<div class="scan-meta"><span>' + (s.type||'scan') + '</span><span class="scan-status ' + (s.status||'').toLowerCase() + '">' + (s.status||'pending') + '</span></div>' +
                         '</div>';
-                    }).join('') : '<div style="text-align:center;padding:20px;color:var(--text-muted);">No scans executed.</div>';
-                }
-            } catch(e) {
-                evt.detail.target.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Scan service unavailable.</div>';
-            }
+                }).join('') || '<div style="text-align:center;padding:10px;color:var(--text-muted);">No scans.</div>';
+            } catch(e) {}
         }
-
         if (evt.detail.target.id === 'red-exploit-monitor') {
             try {
-                var resp = JSON.parse(evt.detail.xhr.responseText);
-                var exploits = resp.data || resp || [];
-                if (Array.isArray(exploits)) {
-                    exploitCount = exploits.length;
-                    sessionCount = exploits.filter(function(e){ return e.sessionId; }).length;
-                    updateStats();
-                    evt.detail.target.innerHTML = exploits.length > 0 ? exploits.map(function(e) {
-                        return '<div class="scan-item">' +
-                            '<div style="display:flex;justify-content:space-between;"><span class="scan-target">' + (e.target || e.exploitId || 'N/A') + '</span><span class="scan-status ' + (e.status ? e.status.toLowerCase() : 'running') + '">' + (e.status || 'RUNNING').toUpperCase() + '</span></div>' +
-                            '<div class="scan-meta"><span>TYPE: ' + (e.exploitType || 'N/A') + '</span><span>SESSION: ' + (e.sessionId || '--') + '</span><span>STARTED: ' + (e.startedAt ? new Date(e.startedAt).toLocaleTimeString('pt-BR') : '--') + '</span></div>' +
+                var data = JSON.parse(evt.detail.xhr.responseText);
+                var sessions = data.sessions || data || [];
+                if (!Array.isArray(sessions)) sessions = [];
+                evt.detail.target.innerHTML = sessions.map(function(s) {
+                    return '<div class="scan-item">' +
+                        '<span class="scan-target">' + (s.target||s.id) + '</span>' +
+                        '<div class="scan-meta"><span>' + (s.type||'exploit') + '</span><span class="scan-status ' + (s.status||'').toLowerCase() + '">' + (s.status||'active') + '</span></div>' +
                         '</div>';
-                    }).join('') : '<div style="text-align:center;padding:20px;color:var(--text-muted);">No exploits executed.</div>';
-                }
-            } catch(e) {
-                evt.detail.target.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Exploit service unavailable.</div>';
-            }
+                }).join('') || '<div style="text-align:center;padding:10px;color:var(--text-muted);">No sessions.</div>';
+            } catch(e) {}
         }
     });
-
-    function updateStats() {
-        document.getElementById('rmon-scans').textContent = scanCount;
-        document.getElementById('rmon-exploits').textContent = exploitCount;
-        document.getElementById('rmon-sessions').textContent = sessionCount;
-        document.getElementById('rmon-findings').textContent = findingsCount;
-    }
-
-    function getToken() {
-        return localStorage.getItem('abitat_token') || '';
-    }
-
-    (function() {
-        fetch(API_BASE + '/api/Exploit/sessions', {
-            headers: { 'Authorization': 'Bearer ' + getToken() }
-        }).then(function(r) { return r.json(); }).then(function(d) {
-            var exploits = d.data || d || [];
-            if (Array.isArray(exploits)) {
-                exploitCount = exploits.length;
-                sessionCount = exploits.filter(function(e){ return e.sessionId; }).length;
-                updateStats();
-            }
-        }).catch(function() {});
-    })();
+})();
 </script>

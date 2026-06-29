@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
 
 <div class="red-card">
     <div class="card-header">
@@ -144,7 +143,7 @@
 </div>
 
 <script>
-    var API_BASE = window.__API_RED__ || 'http://localhost:5074';
+    var API_BASE = window.__API_RED__ || (window.location.hostname === 'localhost' ? 'http://localhost:10002' : '');
 
     var toolsDB = {
         nmap: { category:'scan', modules:[

@@ -1,149 +1,349 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Malebolge Hydra Form</title>
-    <style>
-        :root { color-scheme: dark; }
-        body { background: #0d1117; color: #c5c8cd; font-family: "JetBrains Mono","Fira Code","Consolas",monospace; margin: 0; height: 100vh; overflow: hidden; }
-    </style>
+    <meta name="description" content="Malebolge Hydra - Multi-agent cybersecurity orchestration platform">
+    <meta name="theme-color" content="#0a0d14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Malebolge">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Malebolge Hydra">
     <link rel="icon" type="image/png" href="/Male.png">
+    <link rel="apple-touch-icon" href="/Male.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/Male.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/Male.png">
     <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="/css/style.css">
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/json-enc.js"></script>
-    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <header class="header">
         <div class="brand-container" onclick="toggleChat()">
-            <button class="abitabtn" id="abitabtn" title="Malebolge AI"><img src="./Male.png" class="agent-icon" alt="Malebolge Core"></button>
+            <button class="abitabtn" id="abitabtn" title="Malebolge AI">
+                <img src="./Male.png" class="agent-icon" alt="Malebolge Core">
+            </button>
         </div>
         <div class="nav-tabs" id="nav-tabs">
-            <button class="nav-tab active" data-tab="blue" hx-get="/blue/dashboard.html" hx-target="#panel-blue" hx-swap="innerHTML" onclick="switchTab('blue')">BLUE TEAM</button>
-            <button class="nav-tab" data-tab="red" hx-get="/red/dashboard.html" hx-target="#panel-red" hx-swap="innerHTML" onclick="switchTab('red')">RED TEAM</button>
-            <button class="nav-tab" data-tab="violet" hx-get="/violet/dashboard.html" hx-target="#panel-violet" hx-swap="innerHTML" onclick="switchTab('violet')">VIOLET LAB</button>
-            <button class="nav-tab" data-tab="silver" hx-get="/silver/dashboard.html" hx-target="#panel-silver" hx-swap="innerHTML" onclick="switchTab('silver')">SILVER AI</button>
+            <button class="nav-tab active" data-tab="blue" onclick="switchTab('blue')">BLUE TEAM</button>
+            <button class="nav-tab" data-tab="red" onclick="switchTab('red')">RED TEAM</button>
+            <button class="nav-tab" data-tab="violet" onclick="switchTab('violet')">VIOLET LAB</button>
+            <button class="nav-tab" data-tab="silver" onclick="switchTab('silver')">SILVER AI</button>
         </div>
         <button class="btn-exit" id="btn-exit" onclick="logout()">EXIT</button>
     </header>
 
-    <div class="main-scroll" id="main-scroll">
-        <div class="panel" id="panel-blue"></div>
-        <div class="panel" id="panel-red"></div>
-        <div class="panel" id="panel-violet"></div>
-        <div class="panel" id="panel-silver"></div>
-    </div>
+    <main class="main-scroll" id="main-scroll">
+        <section class="panel" id="panel-blue"></section>
+        <section class="panel" id="panel-red"></section>
+        <section class="panel" id="panel-violet"></section>
+        <section class="panel" id="panel-silver"></section>
+    </main>
 
-    <div class="chat-window" id="chat-window">
-        <div class="chat-titlebar" id="chat-titlebar"><div class="chat-titlebar-text"><span class="status-pulse"></span> MALEBOLGE INTELLIGENCE AGENT</div><div class="chat-titlebar-btns"><button onclick="toggleChat()">&#10005;</button></div></div>
-        <div class="chat-agent-select"><select id="chat-agent" onchange="changeAgent()"><option value="red">RedAgent // Offensive Core</option><option value="blue">BlueAgent // Defensive Analysis</option><option value="violet">VioletAgent // Environment Orchestration</option><option value="silver">SilverAgent // LLM Diagnostics</option></select></div>
+    <aside class="chat-window" id="chat-window">
+        <div class="chat-titlebar" id="chat-titlebar">
+            <div class="chat-titlebar-text"><span class="status-pulse"></span> MALEBOLGE INTELLIGENCE AGENT</div>
+            <div class="chat-titlebar-btns"><button onclick="toggleChat()">&#10005;</button></div>
+        </div>
+        <div class="chat-agent-select">
+            <select id="chat-agent" onchange="changeAgent()">
+                <option value="red">RedAgent // Offensive Core</option>
+                <option value="blue">BlueAgent // Defensive Analysis</option>
+                <option value="violet">VioletAgent // Environment Orchestration</option>
+                <option value="silver">SilverAgent // LLM Diagnostics</option>
+            </select>
+        </div>
         <div class="chat-body" id="chat-body"><div class="chat-msg agent">BlueAgent: Ready for instruction set execution.</div></div>
         <div class="chat-input-area">
-            <div class="chat-input-row"><input type="text" id="chat-input" placeholder="Execute operation syntax..." onkeypress="if(event.key==='Enter')sendChat()"><button class="action-btn btn-primary" onclick="sendChat()" id="run-btn" style="width:auto;">RUN</button></div>
-            <div class="chat-quick"><button onclick="quickChat('scan')">_SCAN</button><button onclick="quickChat('exploit')">_EXPLOIT</button><button onclick="quickChat('report')">_REPORT</button><button onclick="quickChat('lab')">_CLONE_LAB</button></div>
+            <div class="chat-input-row">
+                <input type="text" id="chat-input" placeholder="Execute operation syntax..." onkeypress="if(event.key==='Enter')sendChat()">
+                <button class="action-btn btn-primary" onclick="sendChat()" id="run-btn" style="width:auto;">RUN</button>
+            </div>
+            <div class="chat-quick">
+                <button onclick="quickChat('scan')">_SCAN</button>
+                <button onclick="quickChat('exploit')">_EXPLOIT</button>
+                <button onclick="quickChat('report')">_REPORT</button>
+                <button onclick="quickChat('lab')">_CLONE_LAB</button>
+            </div>
         </div>
-    </div>
+    </aside>
 
-    <script src="/js/app.js"></script>
     <script>
-        var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        var AUTH_BASE = isLocal ? 'http://localhost:10001/api' : 'https://' + window.location.hostname + '/api';
-        var AUTH_BASE_LOGIN = isLocal ? 'http://localhost:10001/api' : 'https://rapsodia.th1eros.dev/api';
-        
-        function escapeHtml(text) { var div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
-        function updateHeaderVisibility() { var nav = document.getElementById('nav-tabs'); var exitBtn = document.getElementById('btn-exit'); var hasToken = localStorage.getItem('malebolge_token'); if (nav) { nav.classList.toggle('visible', !!hasToken); } if (exitBtn) { exitBtn.classList.toggle('visible', !!hasToken); } }
-        function lockScroll(lock) { var scroll = document.getElementById('main-scroll'); if (scroll) { scroll.classList.toggle('locked', lock); } }
-        function closeChat() { document.getElementById('chat-window').classList.remove('open'); document.getElementById('abitabtn').classList.remove('open'); }
-        function preloadDashboards() {
-            htmx.ajax('GET', '/blue/dashboard.html', {target: '#panel-blue', swap: 'innerHTML'});
-            htmx.ajax('GET', '/red/dashboard.html', {target: '#panel-red', swap: 'innerHTML'});
-            htmx.ajax('GET', '/violet/dashboard.html', {target: '#panel-violet', swap: 'innerHTML'});
-            htmx.ajax('GET', '/silver/dashboard.html', {target: '#panel-silver', swap: 'innerHTML'});
+        var AUTH_BASE = '/api';
+        var AUTH_BASE_LOGIN = '/api';
+
+        document.body.addEventListener('htmx:configRequest', function(evt) {
+            var token = localStorage.getItem('malebolge_token');
+            if (token) evt.detail.headers['Authorization'] = 'Bearer ' + token;
+        });
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
-        function showDashboard() { 
+
+        function updateHeaderVisibility() {
+            var nav = document.getElementById('nav-tabs');
+            var exitBtn = document.getElementById('btn-exit');
+            var hasToken = !!localStorage.getItem('malebolge_token');
+            if (nav) nav.classList.toggle('visible', hasToken);
+            if (exitBtn) exitBtn.classList.toggle('visible', hasToken);
+        }
+
+        function closeChat() {
+            document.getElementById('chat-window').classList.remove('open');
+            document.getElementById('abitabtn').classList.remove('open');
+        }
+
+        function preloadDashboards() { var mods = ['blue', 'red', 'violet', 'silver']; mods.forEach(
+        function(m, i) { setTimeout(
+        function() { var p = document.getElementById('panel-' + m); if (p) { htmx.ajax('GET', '/' + m + '/dashboard.html', { target: '#panel-' + m, swap: 'innerHTML' }); } else { setTimeout(
+        function() { var rp = document.getElementById('panel-' + m); if (rp) { htmx.ajax('GET', '/' + m + '/dashboard.html', { target: '#panel-' + m, swap: 'innerHTML' }); } }, 500); } }, i * 200); }); }
+
+        function showDashboard() {
             document.getElementById('main-scroll').scrollLeft = 0;
-            lockScroll(false); 
-            updateHeaderVisibility(); 
-            document.getElementById('chat-window').style.display = ''; 
+            updateHeaderVisibility();
+            document.getElementById('chat-window').style.display = '';
             preloadDashboards();
-            setTimeout(filterModules, 300);
         }
-        function renderLogin() { 
-            document.getElementById('panel-blue').style.display = '';
+
+        var agentColors = {
+            red:   { color: '#d97a7a', glow: 'rgba(217,122,122,0.15)' },
+            blue:  { color: '#6ba4d6', glow: 'rgba(107,164,214,0.15)' },
+            violet:{ color: '#a89dd4', glow: 'rgba(168,157,212,0.15)' },
+            silver:{ color: '#b8bdc4', glow: 'rgba(184,189,196,0.20)' }
+        };
+
+        function setAgentTheme(agent) {
+            var c = agentColors[agent];
+            if (!c) return;
+            document.documentElement.style.setProperty('--agent-color', c.color);
+            document.documentElement.style.setProperty('--agent-glow', c.glow);
+            var runBtn = document.getElementById('run-btn');
+            if (runBtn) {
+                runBtn.style.background = c.color;
+                runBtn.style.color = agent === 'silver' ? '#1c2128' : '#fff';
+            }
+        }
+
+        setAgentTheme('blue');
+
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
+            var tabBtn = document.querySelector('[data-tab="' + tab + '"]');
+            if (tabBtn) tabBtn.classList.add('active');
+
+            var panel = document.getElementById('panel-' + tab);
+            if (panel) {
+                document.getElementById('main-scroll').scrollTo({ left: panel.offsetLeft, behavior: 'smooth' });
+            }
+
+            setAgentTheme(tab);
+            var select = document.getElementById('chat-agent');
+            if (select) select.value = tab;
+        }
+
+        var scroll = document.getElementById('main-scroll');
+        var isScrolling = false;
+
+        scroll.addEventListener('scroll', function() {
+            if (isScrolling) return;
+            var panels = ['blue', 'red', 'violet', 'silver'];
+            var mid = scroll.scrollLeft + scroll.offsetWidth / 2;
+            var active = 'blue';
+
+            panels.forEach(function(p) {
+                var el = document.getElementById('panel-' + p);
+                if (el && el.offsetLeft <= mid && el.offsetLeft + el.offsetWidth > mid) active = p;
+            });
+
+            document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
+            var tabBtn = document.querySelector('[data-tab="' + active + '"]');
+            if (tabBtn) tabBtn.classList.add('active');
+
+            setAgentTheme(active);
+            var select = document.getElementById('chat-agent');
+            if (select) select.value = active;
+        });
+
+        function toggleChat() {
+            document.getElementById('chat-window').classList.toggle('open');
+            document.getElementById('abitabtn').classList.toggle('open');
+        }
+
+        function changeAgent() {
+            var agent = document.getElementById('chat-agent').value;
+            setAgentTheme(agent);
+            switchTab(agent);
+            var names = { red: 'RedAgent', blue: 'BlueAgent', violet: 'VioletAgent', silver: 'SilverAgent' };
+            var body = document.getElementById('chat-body');
+            body.innerHTML += '<div class="chat-msg agent">' + escapeHtml(names[agent] + ': Instance attached.') + '</div>';
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function sendChat() {
+            var input = document.getElementById('chat-input');
+            var msg = input.value.trim();
+            if (!msg) return;
+            var agent = document.getElementById('chat-agent').value;
+            var names = { red: 'RedAgent', blue: 'BlueAgent', violet: 'VioletAgent', silver: 'SilverAgent' };
+            var body = document.getElementById('chat-body');
+            body.innerHTML += '<div class="chat-msg user">' + escapeHtml(msg) + '</div>';
+            input.value = '';
+
+            var SILVER_HOST = (window.API && window.API.silver) ? window.API.silver : '/api';
+            var token = localStorage.getItem('malebolge_token');
+
+            fetch(SILVER_HOST + '/Orchestration/ai/analyze', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + (token || ''),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ context: names[agent] || 'analista', data: msg })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                body.innerHTML += '<div class="chat-msg agent">' + escapeHtml(d.analysis || 'No response.') + '</div>';
+                body.scrollTop = body.scrollHeight;
+            })
+            .catch(function() {
+                body.innerHTML += '<div class="chat-msg agent" style="color:var(--accent-red);">Connection failed.</div>';
+                body.scrollTop = body.scrollHeight;
+            });
+        }
+
+        function quickChat(cmd) {
+            var cmds = { scan: 'Network asset exploration', exploit: 'Trigger exploit payload', report: 'Compile executive report', lab: 'Orchestrate lab baseline' };
+            document.getElementById('chat-input').value = cmds[cmd] || cmd;
+            sendChat();
+        }
+
+        var titlebar = document.getElementById('chat-titlebar');
+        var win = document.getElementById('chat-window');
+        var interactionMode = '';
+        var startX, startY, startLeft, startTop, startWidth, startHeight;
+        var edgeThreshold = 12;
+
+        win.addEventListener('mousemove', function(e) {
+            if (interactionMode) return;
+            var r = win.getBoundingClientRect();
+            var onRight = e.clientX > r.right - edgeThreshold;
+            var onBottom = e.clientY > r.bottom - edgeThreshold;
+            win.style.cursor = onRight && onBottom ? 'se-resize' : onRight ? 'e-resize' : onBottom ? 's-resize' : 'default';
+        });
+
+        win.addEventListener('mousedown', function(e) {
+            var r = win.getBoundingClientRect();
+            var onRight = e.clientX > r.right - edgeThreshold;
+            var onBottom = e.clientY > r.bottom - edgeThreshold;
+            if (onRight || onBottom) {
+                interactionMode = onRight && onBottom ? 'se' : onRight ? 'e' : 's';
+                startX = e.clientX; startY = e.clientY;
+                startWidth = win.offsetWidth; startHeight = win.offsetHeight;
+                e.preventDefault();
+            }
+        });
+
+        titlebar.addEventListener('mousedown', function(e) {
+            if (e.target.tagName === 'BUTTON' || interactionMode) return;
+            interactionMode = 'drag';
+            startX = e.clientX; startY = e.clientY;
+            startLeft = win.offsetLeft; startTop = win.offsetTop;
+            document.body.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!interactionMode) return;
+            if (interactionMode === 'drag') {
+                document.documentElement.style.setProperty('--chat-x', (startLeft + (e.clientX - startX)) + 'px');
+                document.documentElement.style.setProperty('--chat-y', (startTop + (e.clientY - startY)) + 'px');
+            } else {
+                if (interactionMode === 'e' || interactionMode === 'se') win.style.width = Math.max(360, startWidth + (e.clientX - startX)) + 'px';
+                if (interactionMode === 's' || interactionMode === 'se') win.style.height = Math.max(400, startHeight + (e.clientY - startY)) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            interactionMode = '';
+            document.body.style.userSelect = '';
+        });
+
+        function renderLogin() {
+            document.getElementById('panel-red').innerHTML = '';
+            document.getElementById('panel-violet').innerHTML = '';
+            document.getElementById('panel-silver').innerHTML = '';
             document.getElementById('main-scroll').scrollLeft = 0;
-            closeChat(); 
-            lockScroll(false); 
-            updateHeaderVisibility(); 
-            document.getElementById('chat-window').style.display = 'none'; 
-            var panel = document.getElementById('panel-blue'); 
-            panel.innerHTML = '<div class="auth-wrapper"><div class="auth-card"><div><div class="auth-logo-container"><img src="./Male.png" class="auth-logo-img" alt="Malebolge Core"></div><span class="auth-sub">MALEBOLGE COMMAND CENTER AUTHENTICATION</span><form id="login-form" onsubmit="handleLogin(event)"><div class="form-group"><label>USERNAME</label><input type="text" id="login-username" name="username" class="form-control" required autocomplete="off"></div><div class="form-group"><label>PASSWORD</label><input type="password" id="login-password" name="password" class="form-control" required></div><button type="submit" class="action-btn btn-primary">AUTHENTICATE</button></form><div id="login-result" class="mt-2" style="font-size:10px;"></div></div><div class="auth-links"><a href="javascript:void(0)" onclick="renderRegister()">CREATE ACCOUNT</a><span>|</span><a href="javascript:void(0)" onclick="renderForgot()">FORGOT PASSWORD</a></div></div></div>'; 
-            document.getElementById('main-scroll').scrollLeft = 0; 
-            panel.scrollIntoView({ behavior: 'smooth' }); 
+            closeChat();
+            updateHeaderVisibility();
+            document.getElementById('chat-window').style.display = 'none';
+
+            document.getElementById('panel-blue').innerHTML = '<div class="auth-wrapper"><div class="auth-card" id="auth-content"><div><div class="auth-logo-container"><img src="./Male.png" class="auth-logo-img" alt="Malebolge Core"></div><span class="auth-sub">MALEBOLGE COMMAND CENTER AUTHENTICATION</span><form id="login-form" onsubmit="handleLogin(event)"><div class="form-group"><label>USERNAME</label><input type="text" id="login-username" name="username" class="form-control" required autocomplete="off"></div><div class="form-group"><label>PASSWORD</label><input type="password" id="login-password" name="password" class="form-control" required></div><button type="submit" class="action-btn btn-primary">AUTHENTICATE</button></form><div id="login-result" class="mt-2" style="font-size:10px;"></div></div><div class="auth-links"><a href="javascript:void(0)" onclick="renderRegister()">CREATE ACCOUNT</a><span>|</span><a href="javascript:void(0)" onclick="renderForgot()">FORGOT PASSWORD</a></div></div></div>';
         }
+
         function handleLogin(evt) {
             evt.preventDefault();
             var username = document.getElementById('login-username').value;
             var password = document.getElementById('login-password').value;
             fetch(AUTH_BASE_LOGIN + '/Auth/authorize', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: username, password: password})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Username: username, Password: password, Service: 'silver', Scope: '*', ExpiresIn: '8h' })
             })
-            .then(r => r.json())
-            .then(result => {
-                if (result.data?.requires2FA) { render2FA(result.data.username); }
-                else if (result.data?.token) { localStorage.setItem('malebolge_token', result.data.token); showDashboard(); }
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.data && result.data.requires2FA) { render2FA(result.data.username); }
+                else if (result.data && result.data.token) { localStorage.setItem('malebolge_token', result.data.token); showDashboard(); }
                 else { document.getElementById('login-result').textContent = result.message || 'Login failed'; }
             })
-            .catch(e => document.getElementById('login-result').textContent = 'Error: ' + e.message);
+            .catch(function(e) { document.getElementById('login-result').textContent = 'Error: ' + e.message; });
         }
-        function renderRegister() { 
-            document.getElementById('panel-blue').innerHTML = '<div class="auth-wrapper"><div class="auth-card"><div><div class="auth-logo-container"><img src="./Male.png" class="auth-logo-img" alt="Malebolge Core"></div><span class="auth-sub">CREATE MALEBOLGE ACCOUNT</span><form id="register-form" hx-post="' + AUTH_BASE_LOGIN + '/Auth/register" hx-ext="json-enc" hx-target="#panel-blue" hx-swap="innerHTML"><div class="form-group"><label>USERNAME</label><input type="text" name="username" class="form-control" required autocomplete="off"></div><div class="form-group"><label>EMAIL</label><input type="email" name="email" class="form-control" required autocomplete="off"></div><div class="form-group"><label>PASSWORD</label><input type="password" name="password" class="form-control" required></div><button type="submit" class="action-btn btn-primary">REGISTER</button></form><div id="register-result" class="mt-2" style="font-size:10px;"></div></div><div class="auth-links"><a href="javascript:void(0)" onclick="renderLogin()">ALREADY HAVE ACCOUNT</a></div></div></div>'; 
-            htmx.process(document.getElementById('panel-blue')); 
+
+        function renderRegister() {
+            document.getElementById('auth-content').innerHTML = '<div><div class="auth-logo-container"><img src="./Male.png" class="auth-logo-img" alt="Malebolge Core"></div><span class="auth-sub">CREATE MALEBOLGE ACCOUNT</span><form id="register-form" hx-post="' + AUTH_BASE_LOGIN + '/Auth/register" hx-ext="json-enc" hx-target="#panel-blue" hx-swap="innerHTML"><div class="form-group"><label>USERNAME</label><input type="text" name="username" class="form-control" required autocomplete="off"></div><div class="form-group"><label>EMAIL</label><input type="email" name="email" class="form-control" required autocomplete="off"></div><div class="form-group"><label>PASSWORD</label><input type="password" name="password" class="form-control" required></div><button type="submit" class="action-btn btn-primary">REGISTER</button></form><div id="register-result" class="mt-2" style="font-size:10px;"></div></div><div class="auth-links"><a href="javascript:void(0)" onclick="renderLogin()">ALREADY HAVE ACCOUNT</a></div>';
+            htmx.process(document.getElementById('auth-content'));
         }
-        function renderForgot() { 
-            document.getElementById('panel-blue').innerHTML = '<div class="auth-wrapper"><div class="auth-card"><div><div class="auth-logo-container"><img src="./Male.png" class="auth-logo-img" alt="Malebolge Core"></div><span class="auth-sub">RECOVER ACCESS KEY</span><form id="forgot-form" hx-post="' + AUTH_BASE_LOGIN + '/Auth/forgot" hx-ext="json-enc" hx-target="#panel-blue"><div class="form-group"><label>EMAIL</label><input type="email" name="email" class="form-control" required autocomplete="off"></div><button type="submit" class="action-btn btn-primary">SEND RESET LINK</button></form><div id="forgot-result" class="mt-2" style="font-size:10px;"></div></div><div class="auth-links"><a href="javascript:void(0)" onclick="renderLogin()">BACK TO LOGIN</a></div></div></div>'; 
-            htmx.process(document.getElementById('panel-blue')); 
+
+        function renderForgot() {
+            document.getElementById('auth-content').innerHTML = '<div><div class="auth-logo-container"><img src="./Male.png" class="auth-logo-img" alt="Malebolge Core"></div><span class="auth-sub">RECOVER ACCESS KEY</span><form id="forgot-form" hx-post="' + AUTH_BASE_LOGIN + '/Auth/forgot" hx-ext="json-enc" hx-target="#panel-blue"><div class="form-group"><label>EMAIL</label><input type="email" name="email" class="form-control" required autocomplete="off"></div><button type="submit" class="action-btn btn-primary">SEND RESET LINK</button></form><div id="forgot-result" class="mt-2" style="font-size:10px;"></div></div><div class="auth-links"><a href="javascript:void(0)" onclick="renderLogin()">BACK TO LOGIN</a></div>';
+            htmx.process(document.getElementById('auth-content'));
         }
-        function render2FA(username) { 
-            document.getElementById('panel-blue').innerHTML = '<div class="auth-wrapper"><div class="auth-card"><div><div class="auth-logo-container"><img src="./Male.png" class="auth-logo-img" alt="Malebolge Core"></div><span class="auth-sub">TWO-FACTOR VERIFICATION</span><form id="2fa-form" onsubmit="handle2FA(event, \'' + escapeHtml(username) + '\')"><input type="hidden" name="username" value="' + escapeHtml(username) + '"><div class="form-group"><label>VERIFICATION CODE (check console)</label><input type="text" id="2fa-code" name="code" placeholder="000000" maxlength="6" class="form-control" style="text-align:center;font-size:20px;letter-spacing:6px;" required autocomplete="off"></div><button type="submit" class="action-btn btn-primary">VERIFY TOKEN</button></form><div id="2fa-result" class="mt-2" style="font-size:10px;"></div></div><div class="auth-links"><a href="javascript:void(0)" onclick="renderLogin()">ABORT</a></div></div></div>'; 
+
+        function render2FA(username) {
+            document.getElementById('auth-content').innerHTML = '<div><div class="auth-logo-container"><img src="./Male.png" class="auth-logo-img" alt="Malebolge Core"></div><span class="auth-sub">TWO-FACTOR VERIFICATION</span><form id="2fa-form" onsubmit="handle2FA(event, \'' + escapeHtml(username) + '\')"><input type="hidden" name="username" value="' + escapeHtml(username) + '"><div class="form-group"><label>VERIFICATION CODE</label><input type="text" id="2fa-code" name="code" placeholder="000000" maxlength="6" class="form-control" style="text-align:center;font-size:20px;letter-spacing:6px;" required autocomplete="off"></div><button type="submit" class="action-btn btn-primary">VERIFY TOKEN</button></form><div id="2fa-result" class="mt-2" style="font-size:10px;"></div></div><div class="auth-links"><a href="javascript:void(0)" onclick="renderLogin()">ABORT</a></div>';
         }
+
         function handle2FA(evt, username) {
             evt.preventDefault();
             var code = document.getElementById('2fa-code').value;
             fetch(AUTH_BASE_LOGIN + '/Auth/verify-2fa', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: username, code: code})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Username: username, Code: code })
             })
-            .then(r => r.json())
-            .then(result => {
-                if (result.data?.token) { localStorage.setItem('malebolge_token', result.data.token); showDashboard(); }
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.data && result.data.token) { localStorage.setItem('malebolge_token', result.data.token); showDashboard(); }
                 else { document.getElementById('2fa-result').textContent = result.message || '2FA failed'; }
             })
-            .catch(e => document.getElementById('2fa-result').textContent = 'Error: ' + e.message);
+            .catch(function(e) { document.getElementById('2fa-result').textContent = 'Error: ' + e.message; });
         }
+
         function logout() {
             localStorage.removeItem('malebolge_token');
             updateHeaderVisibility();
             closeChat();
-            lockScroll(true);
             renderLogin();
         }
+
         if (!localStorage.getItem('malebolge_token')) { renderLogin(); } else { showDashboard(); }
-        var agentColors = { red:{color:'#d97a7a',glow:'rgba(217,122,122,0.15)'}, blue:{color:'#6ba4d6',glow:'rgba(107,164,214,0.15)'}, violet:{color:'#a89dd4',glow:'rgba(168,157,212,0.15)'}, silver:{color:'#b8bdc4',glow:'rgba(184,189,196,0.20)'} };
-        function setAgentTheme(a){ var c=agentColors[a]; document.documentElement.style.setProperty('--agent-color',c.color); document.documentElement.style.setProperty('--agent-glow',c.glow); var b=document.getElementById('run-btn'); if(b){ b.style.background=c.color; b.style.color=a==='silver'?'#1c2128':'#fff'; } }
-        setAgentTheme('blue');
-        function switchTab(tab) { document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');}); var tt=document.querySelector('[data-tab="'+tab+'"]'); if(tt)tt.classList.add('active'); var p=document.getElementById('panel-'+tab); if(p)p.scrollIntoView({behavior:'smooth'}); setAgentTheme(tab); var s=document.getElementById('chat-agent'); if(s)s.value=tab; }
-        var scroll=document.getElementById('main-scroll'); scroll.addEventListener('scroll',function(){var panels=['blue','red','violet','silver'],mid=scroll.scrollLeft+scroll.offsetWidth/2,active='blue';panels.forEach(function(p){var el=document.getElementById('panel-'+p);if(el&&el.offsetLeft<=mid&&el.offsetLeft+el.offsetWidth>mid)active=p;});document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});var tab=document.querySelector('[data-tab="'+active+'"]');if(tab)tab.classList.add('active');setAgentTheme(active);var s=document.getElementById('chat-agent');if(s)s.value=active;});
-        function toggleChat(){document.getElementById('chat-window').classList.toggle('open');document.getElementById('abitabtn').classList.toggle('open');}
-        function changeAgent(){var a=document.getElementById('chat-agent').value;setAgentTheme(a);var p=document.getElementById('panel-'+a);if(p)p.scrollIntoView({behavior:'smooth'});document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});var tab=document.querySelector('[data-tab="'+a+'"]');if(tab)tab.classList.add('active');var n={red:'RedAgent',blue:'BlueAgent',violet:'VioletAgent',silver:'SilverAgent'};var b=document.getElementById('chat-body');b.innerHTML+='<div class="chat-msg agent">'+escapeHtml(n[a]+': Instance attached.')+'</div>';b.scrollTop=b.scrollHeight;}
-        function sendChat(){var i=document.getElementById('chat-input'),m=i.value.trim();if(!m)return;var a=document.getElementById('chat-agent').value,n={red:'RedAgent',blue:'BlueAgent',violet:'VioletAgent',silver:'SilverAgent'},b=document.getElementById('chat-body');b.innerHTML+='<div class="chat-msg user">'+escapeHtml(m)+'</div>';i.value='';setTimeout(function(){var r={red:['Discovery dispatched.','Exploit armed.','Target compromised.'],blue:['Telemetry normal.','Firewall applied.','Incident mitigated.'],violet:['Sandbox deployed.','Snapshot persisted.','Network ready.'],silver:['Parsing completed.','Workflow optimized.','Model found.']};var resp=r[a]||['Command verified.'];b.innerHTML+='<div class="chat-msg agent">'+escapeHtml(n[a]+': '+resp[Math.floor(Math.random()*resp.length)])+'</div>';b.scrollTop=b.scrollHeight;},400);}
-        function quickChat(c){var cmds={scan:'Network asset exploration',exploit:'Trigger exploit payload',report:'Compile executive report',lab:'Orchestrate lab baseline'};document.getElementById('chat-input').value=cmds[c]||c;sendChat();}
-        var titlebar=document.getElementById('chat-titlebar'),win=document.getElementById('chat-window'),interactionMode='',startX,startY,startLeft,startTop,startWidth,startHeight,edgeThreshold=12;win.addEventListener('mousemove',function(e){if(interactionMode)return;var r=win.getBoundingClientRect(),onRight=e.clientX>r.right-edgeThreshold,onBottom=e.clientY>r.bottom-edgeThreshold;win.style.cursor=onRight&&onBottom?'se-resize':onRight?'e-resize':onBottom?'s-resize':'default';});win.addEventListener('mousedown',function(e){var r=win.getBoundingClientRect(),onRight=e.clientX>r.right-edgeThreshold,onBottom=e.clientY>r.bottom-edgeThreshold;if(onRight||onBottom){interactionMode=onRight&&onBottom?'se':onRight?'e':'s';startX=e.clientX;startY=e.clientY;startWidth=win.offsetWidth;startHeight=win.offsetHeight;e.preventDefault();}});titlebar.addEventListener('mousedown',function(e){if(e.target.tagName==='BUTTON'||interactionMode)return;interactionMode='drag';startX=e.clientX;startY=e.clientY;startLeft=win.offsetLeft;startTop=win.offsetTop;document.body.style.userSelect='none';});document.addEventListener('mousemove',function(e){if(!interactionMode)return;if(interactionMode==='drag'){document.documentElement.style.setProperty('--chat-x',(startLeft+(e.clientX-startX))+'px');document.documentElement.style.setProperty('--chat-y',(startTop+(e.clientY-startY))+'px');}else{if(interactionMode==='e'||interactionMode==='se')win.style.width=Math.max(360,startWidth+(e.clientX-startX))+'px';if(interactionMode==='s'||interactionMode==='se')win.style.height=Math.max(400,startHeight+(e.clientY-startY))+'px';}});document.addEventListener('mouseup',function(){interactionMode='';document.body.style.userSelect='';});
     </script>
+    <script src="/js/app.js"></script>
 </body>
 </html>

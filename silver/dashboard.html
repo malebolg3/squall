@@ -1,5 +1,5 @@
-<!-- SPDX-License-Identifier: UNLICENSED -->
-<!-- Copyright (C) 2026 Th1eros - Proprietary -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Copyright (C) 2026 Th1eros -->
 
 <div class="silver-dashboard">
     <div class="silver-topbar">
@@ -7,7 +7,7 @@
             <span class="silver-logo">SILVER BULLET</span>
             <span class="silver-sub">AI ORCHESTRATION ENGINE</span>
         </div>
-        <div class="silver-telemetry" hx-get="/api/Orchestration/status" hx-trigger="load, every 20s" hx-swap="none">
+        <div class="silver-telemetry" id="silver-telemetry">
             <div class="tel-item"><span class="status-dot green-pulse"></span>OBSIDIAN: <strong class="txt-green" id="obsidian-status">--</strong></div>
             <div class="tel-item"><span class="status-dot blue-pulse"></span>BLUE: <strong class="txt-blue" id="agt-blue">--</strong></div>
             <div class="tel-item"><span class="status-dot red-pulse"></span>RED: <strong class="txt-red" id="agt-red">--</strong></div>
@@ -17,56 +17,44 @@
     </div>
 
     <div class="silver-stats-strip">
-        <div class="strip-card" hx-get="/silver/agents/list.html" hx-target="#panel-silver" hx-swap="innerHTML">
-            <span class="strip-label">AGENTS</span><span class="strip-value" id="stat-agents">4</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-silver);"></div></div>
-        </div>
-        <div class="strip-card" hx-get="/silver/orchestration/run.html" hx-target="#panel-silver" hx-swap="innerHTML">
-            <span class="strip-label">WORKFLOWS</span><span class="strip-value">RUN</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:80%;background:var(--accent-green);"></div></div>
-        </div>
-        <div class="strip-card" hx-get="/silver/obsidian/list.html" hx-target="#panel-silver" hx-swap="innerHTML">
-            <span class="strip-label">KNOWLEDGE</span><span class="strip-value">VAULT</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-orange);"></div></div>
-        </div>
-        <div class="strip-card" hx-get="/silver/agents/create.html" hx-target="#panel-silver" hx-swap="innerHTML">
-            <span class="strip-label">CREATE LAB</span><span class="strip-value">+</span>
-            <div class="progress-bar"><div class="progress-fill" style="width:60%;background:var(--accent-blue);"></div></div>
-        </div>
+        <div class="strip-card"><span class="strip-label">AGENTS</span><span class="strip-value" id="stat-agents">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-silver);"></div></div></div>
+        <div class="strip-card"><span class="strip-label">WORKFLOWS</span><span class="strip-value">RUN</span><div class="progress-bar"><div class="progress-fill" style="width:80%;background:var(--accent-green);"></div></div></div>
+        <div class="strip-card"><span class="strip-label">KNOWLEDGE</span><span class="strip-value">VAULT</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-orange);"></div></div></div>
+        <div class="strip-card"><span class="strip-label">CREATE AGENT</span><span class="strip-value">+</span><div class="progress-bar"><div class="progress-fill" style="width:60%;background:var(--accent-blue);"></div></div></div>
     </div>
 
     <div class="silver-main-grid">
         <div class="silver-card">
             <div class="card-header"><h3>AGENT ORCHESTRATION</h3><span class="panel-tag">LIVE</span></div>
-            <div class="silver-agents" id="agents-list" hx-get="/api/Orchestration/status" hx-trigger="load, every 15s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
+            <div class="silver-agents" id="agents-list">
                 <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading agents...</div>
             </div>
         </div>
         <div class="silver-card">
             <div class="card-header"><h3>ACTIVE LABS</h3><span class="panel-tag">VIOLET</span></div>
-            <div id="active-labs" hx-get="/api/Orchestration/agents/violet/labs" hx-trigger="load, every 30s" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-swap="innerHTML">
+            <div id="active-labs">
                 <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading labs...</div>
             </div>
         </div>
         <div class="silver-card">
-            <div class="card-header"><h3>CONSOLE</h3></div>
-            <div class="silver-chat" id="chat-box"><div class="chat-msg system">Silver Bullet ready.</div></div>
+            <div class="card-header"><h3>AI CONSOLE</h3><span class="panel-tag" id="chat-status">READY</span></div>
+            <div class="silver-chat" id="chat-box"><div class="chat-msg system">Silver Bullet ready. All agents operational.</div></div>
             <div class="silver-chat-input">
-                <input type="text" id="silver-input" class="form-control" placeholder="Command or query..." onkeypress="if(event.key==='Enter')sendCommand()" style="flex:1;">
-                <button class="action-btn" onclick="sendCommand()" style="width:auto;background:var(--accent-silver);color:var(--bg-main);border-color:var(--accent-silver);">RUN</button>
+                <input type="text" id="silver-input" class="form-control" placeholder="Ask anything about cybersecurity..." onkeypress="if(event.key==='Enter')sendCommand()" style="flex:1;">
+                <button class="action-btn" onclick="sendCommand()" id="chat-send-btn" style="width:auto;background:var(--accent-silver);color:var(--bg-main);">SEND</button>
             </div>
             <div class="silver-quick-actions">
-                <button class="action-btn" onclick="quickCmd('scan')">SCAN</button>
-                <button class="action-btn" onclick="quickCmd('exploit')">EXPLOIT</button>
-                <button class="action-btn" onclick="quickCmd('report')">REPORT</button>
-                <button class="action-btn" onclick="quickCmd('deploy')">DEPLOY</button>
+                <button class="action-btn" onclick="quickCmd('scan')">VULNERABILITIES</button>
+                <button class="action-btn" onclick="quickCmd('exploit')">EXPLOITS</button>
+                <button class="action-btn" onclick="quickCmd('report')">THREAT INTEL</button>
+                <button class="action-btn" onclick="quickCmd('deploy')">DEPLOY LAB</button>
             </div>
         </div>
         <div class="silver-card">
             <div class="card-header"><h3>OBSIDIAN SEARCH</h3></div>
             <div class="silver-search">
-                <input type="text" id="obsidian-search" class="form-control" placeholder="Search vault..." onkeypress="if(event.key==='Enter')searchObsidian()" style="flex:1;">
-                <button class="action-btn" onclick="searchObsidian()" style="width:auto;background:var(--accent-silver);color:var(--bg-main);border-color:var(--accent-silver);">SEARCH</button>
+                <input type="text" id="obsidian-search" class="form-control" placeholder="Search knowledge vault..." onkeypress="if(event.key==='Enter')searchObsidian()" style="flex:1;">
+                <button class="action-btn" onclick="searchObsidian()" style="width:auto;background:var(--accent-silver);color:var(--bg-main);">SEARCH</button>
             </div>
             <select id="vault-select" class="form-control" style="margin-bottom:8px;">
                 <option value="ai-analysis">AI Analysis</option>
@@ -83,77 +71,155 @@
 
 <script>
 (function() {
-    var API = window.__API_SILVER__ || (window.location.hostname === 'localhost' ? 'http://localhost:10004' : '');
-    function token() { return localStorage.getItem('abitat_token') || ''; }
-    function headers() { return { 'Authorization': 'Bearer ' + token(), 'Content-Type': 'application/json' }; }
-    function authHeaders() { return { 'Authorization': 'Bearer ' + token() }; }
+    var token = localStorage.getItem('malebolge_token') || '';
+    var SILVER_HOST = (window.API && window.API.silver) ? window.API.silver : (window.location.hostname === 'localhost' ? 'http://localhost:10004/api' : '/api');
+    var agentsInterval, labsInterval;
+
+    function authHeaders() {
+        return {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        };
+    }
+
+    function safeText(id, value) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = value;
+    }
+
+    function safeHTML(id, html) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+    }
+
+    function fetchAgents() {
+        var obsidianEl = document.getElementById('obsidian-status');
+        if (!obsidianEl) return;
+
+        fetch(SILVER_HOST + '/Orchestration/status', { headers: authHeaders() })
+            .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function(d) {
+                safeText('obsidian-status', d.obsidian === 'healthy' ? 'ONLINE' : 'OFFLINE');
+                var agents = d.agents || {};
+                safeText('agt-blue', agents.blue || '--');
+                safeText('agt-red', agents.red || '--');
+                safeText('agt-violet', agents.violet || '--');
+                safeText('agt-silver', agents.silver || '--');
+                safeText('stat-agents', Object.keys(agents).length);
+
+                var listEl = document.getElementById('agents-list');
+                if (listEl) {
+                    listEl.innerHTML = Object.keys(agents).map(function(k) {
+                        return '<div class="agent-row"><span class="agent-name">' + k.toUpperCase() + '</span><span class="agent-status">' + agents[k] + '</span></div>';
+                    }).join('') || '<div style="text-align:center;padding:10px;color:var(--text-muted);">No agents.</div>';
+                }
+            })
+            .catch(function() {
+                safeText('obsidian-status', 'OFFLINE');
+            });
+    }
+
+    function fetchLabs() {
+        var labsEl = document.getElementById('active-labs');
+        if (!labsEl) return;
+
+        fetch(SILVER_HOST + '/Orchestration/agents/violet/labs', { headers: authHeaders() })
+            .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function(d) {
+                var labs = d.labs || [];
+                if (labs.length > 0) {
+                    labsEl.innerHTML = labs.map(function(l) {
+                        return '<div class="lab-item"><span class="lab-name">' + (l.name || l.id) + '</span><span class="lab-status active">' + (l.status || 'ACTIVE') + '</span></div>';
+                    }).join('');
+                } else {
+                    labsEl.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">No active labs.</div>';
+                }
+            })
+            .catch(function() {
+                labsEl.innerHTML = '<div style="text-align:center;padding:10px;color:var(--accent-red);">Failed to load labs.</div>';
+            });
+    }
+
+    function startPolling() {
+        fetchAgents();
+        fetchLabs();
+        agentsInterval = setInterval(fetchAgents, 15000);
+        labsInterval = setInterval(fetchLabs, 30000);
+    }
+
+    function stopPolling() {
+        if (agentsInterval) clearInterval(agentsInterval);
+        if (labsInterval) clearInterval(labsInterval);
+    }
 
     window.sendCommand = function() {
         var input = document.getElementById('silver-input');
+        if (!input) return;
         var cmd = input.value.trim();
         if (!cmd) return;
+
         var chat = document.getElementById('chat-box');
+        var status = document.getElementById('chat-status');
+        if (!chat || !status) return;
+
         chat.innerHTML += '<div class="chat-msg user">' + cmd + '</div>';
-        fetch((API || '') + '/api/Orchestration/ai/analyze', { method:'POST', headers:headers(), body:JSON.stringify({Context:cmd, Data:cmd}) })
-            .then(function(r) { return r.json(); })
-            .then(function(d) { chat.innerHTML += '<div class="chat-msg system">' + (d.analysis||'Done.') + '</div>'; chat.scrollTop=chat.scrollHeight; })
-            .catch(function() { chat.innerHTML += '<div class="chat-msg system">Connection failed.</div>'; });
         input.value = '';
+        status.textContent = 'THINKING...';
         chat.scrollTop = chat.scrollHeight;
+
+        fetch(SILVER_HOST + '/Orchestration/ai/analyze', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ context: 'analista de ciberseguranca', data: cmd })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            chat.innerHTML += '<div class="chat-msg system">' + (d.analysis || 'No response.') + '</div>';
+            chat.scrollTop = chat.scrollHeight;
+            status.textContent = 'READY';
+        })
+        .catch(function() {
+            chat.innerHTML += '<div class="chat-msg system" style="color:var(--accent-red);">Connection failed.</div>';
+            chat.scrollTop = chat.scrollHeight;
+            status.textContent = 'ERROR';
+        });
     };
 
     window.quickCmd = function(t) {
-        var cmds = { scan:'Network topology analysis', exploit:'Validate payload integrity', report:'Generate security summary', deploy:'Instantiate lab environment' };
-        document.getElementById('silver-input').value = cmds[t]||t;
+        var input = document.getElementById('silver-input');
+        if (!input) return;
+        var cmds = { scan: 'Top 5 web vulnerabilities 2025', exploit: 'How buffer overflow works', report: 'Ransomware threat intel report', deploy: 'Best lab for pentesting?' };
+        input.value = cmds[t] || t;
         sendCommand();
     };
 
     window.searchObsidian = function() {
-        var q = document.getElementById('obsidian-search').value;
-        var vault = document.getElementById('vault-select').value;
+        var q = document.getElementById('obsidian-search');
         if (!q) return;
+        var query = q.value.trim();
+        if (!query) return;
+
         var container = document.getElementById('obsidian-results');
+        if (!container) return;
         container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">Searching...</div>';
-        fetch((API || '') + '/api/Obsidian/vaults/' + vault + '/search?query=' + encodeURIComponent(q), { headers:authHeaders() })
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                if (d.notes && d.notes.length>0) {
-                    container.innerHTML = d.notes.map(function(n) {
-                        return '<div class="vault-item"><div class="vault-item-title">'+(n.id||'Note')+'</div><div class="vault-item-content">'+(n.content?n.content.substring(0,120):'')+'</div></div>';
-                    }).join('');
-                } else { container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">No results.</div>'; }
-            })
-            .catch(function() { container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--accent-red);">Search failed.</div>'; });
+
+        fetch(SILVER_HOST + '/Orchestration/knowledge/search?query=' + encodeURIComponent(query), { headers: authHeaders() })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            container.innerHTML = d.notes && d.notes.length > 0 ? d.notes.map(function(n) {
+                return '<div class="vault-item"><div class="vault-item-title">' + (n.id || 'Note') + '</div><div class="vault-item-content">' + (n.content ? n.content.substring(0, 120) : '') + '</div></div>';
+            }).join('') : '<div style="text-align:center;padding:10px;color:var(--text-muted);">No results.</div>';
+        })
+        .catch(function() {
+            container.innerHTML = '<div style="text-align:center;padding:10px;color:var(--accent-red);">Search failed.</div>';
+        });
     };
 
-    document.body.addEventListener('htmx:afterRequest', function(evt) {
-        if (evt.detail.target.id === 'agents-list') {
-            try {
-                var d = JSON.parse(evt.detail.xhr.responseText);
-                var agents = d.agents || {};
-                document.getElementById('stat-agents').textContent = Object.keys(agents).length;
-                document.getElementById('obsidian-status').textContent = d.obsidian==='healthy'?'ONLINE':'OFFLINE';
-                document.getElementById('agt-blue').textContent = agents.blue||'--';
-                document.getElementById('agt-red').textContent = agents.red||'--';
-                document.getElementById('agt-violet').textContent = agents.violet||'--';
-                document.getElementById('agt-silver').textContent = agents.silver||'--';
-                evt.detail.target.innerHTML = Object.keys(agents).map(function(k) {
-                    return '<div class="agent-row"><span class="agent-name">'+k+'</span><span class="agent-status">'+agents[k]+'</span></div>';
-                }).join('');
-            } catch(e) {}
-        }
-        if (evt.detail.target.id === 'active-labs') {
-            try {
-                var d = JSON.parse(evt.detail.xhr.responseText);
-                var labs = d.labs || [];
-                if (labs.length>0) {
-                    evt.detail.target.innerHTML = labs.map(function(l) {
-                        return '<div class="lab-item"><span class="lab-name">'+(l.name||l.labId)+'</span><span class="lab-status active">'+(l.status||'ACTIVE')+'</span><button class="action-btn btn-danger-light" hx-delete="/api/Orchestration/agents/violet/labs/'+l.labId+'" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}\' hx-target="#active-labs" hx-swap="innerHTML">DESTROY</button></div>';
-                    }).join('');
-                    htmx.process(evt.detail.target);
-                } else { evt.detail.target.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">No active labs.</div>'; }
-            } catch(e) {}
-        }
+    startPolling();
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) stopPolling();
+        else startPolling();
     });
 })();
 </script>

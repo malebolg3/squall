@@ -1,102 +1,53 @@
-<!DOCTYPE html>
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <!-- Copyright (C) 2026 Th1eros -->
-<!-- Copyright (C) 2026 Th1eros -->
 
-<div class="silver-card" style="max-width:100%;">
-    <div class="card-header">
-        <h3>AGENTS MANAGEMENT</h3>
-        <span class="panel-tag" style="background:rgba(184,189,196,0.1);color:var(--accent-silver);border-color:rgba(184,189,196,0.2);">CRUD</span>
-    </div>
-
-    <div class="silver-stats-strip">
-        <div class="strip-card"><span class="strip-label">BLUE</span><span class="strip-value" id="a-blue">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-blue);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">RED</span><span class="strip-value" id="a-red">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-red);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">VIOLET</span><span class="strip-value" id="a-violet">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-violet);"></div></div></div>
-        <div class="strip-card"><span class="strip-label">SILVER</span><span class="strip-value" id="a-silver">--</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--accent-green);"></div></div></div>
+<div class="silver-dashboard">
+    <div class="silver-topbar">
+        <span class="silver-logo">AGENTS</span>
+        <div class="silver-telemetry">
+            <button class="action-btn" hx-get="/silver/agents/create.html" hx-target="#panel-silver" hx-swap="innerHTML">CREATE</button>
+            <button class="action-btn" hx-get="/silver/monitor.html" hx-target="#panel-silver" hx-swap="innerHTML">MONITOR</button>
+        </div>
     </div>
 
     <div class="agent-panels">
         <div class="agent-panel blue">
-            <div class="panel-title">BLUE AGENT</div>
-            <div class="panel-actions">
-                <button class="agent-btn" hx-post="http://localhost:5076/api/Orchestration/agents/blue/scan" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-vals='js:{Target: localStorage.getItem("red_target")||"10.10.20.15", ScanType:"full"}' hx-target="#agent-result" hx-swap="innerHTML">TRIGGER SCAN</button>
-                <button class="agent-btn" hx-get="http://localhost:5076/api/Orchestration/agents/blue/assets" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-target="#agent-result" hx-swap="innerHTML">GET ASSETS</button>
+            <div class="card-header"><h3>BLUE AGENT</h3><span class="badge badge-blue">DEFENSE</span></div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <button class="agent-btn" hx-post="/api/Orchestration/agents/blue/scan" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-vals='js:{Target: localStorage.getItem("red_target")||"10.10.20.15", ScanType:"full"}' hx-target="#agent-result" hx-swap="innerHTML">TRIGGER SCAN</button>
+                <button class="agent-btn" hx-get="/api/Orchestration/agents/blue/assets" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-target="#agent-result" hx-swap="innerHTML">GET ASSETS</button>
             </div>
         </div>
+
         <div class="agent-panel red">
-            <div class="panel-title">RED AGENT</div>
-            <div class="panel-actions">
-                <button class="agent-btn" hx-post="http://localhost:5076/api/Orchestration/agents/red/exploit" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-vals='js:{Target: localStorage.getItem("red_target")||"10.10.20.15", ExploitName:"metasploit"}' hx-target="#agent-result" hx-swap="innerHTML">TRIGGER EXPLOIT</button>
-                <div class="scan-lookup">
-                    <input type="text" id="scan-id-input" class="form-control" placeholder="Scan ID">
-                    <button class="agent-btn" onclick="getRedScanResult()">GET SCAN</button>
-                </div>
+            <div class="card-header"><h3>RED AGENT</h3><span class="badge badge-red">OFFENSE</span></div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <button class="agent-btn" hx-post="/api/Orchestration/agents/red/exploit" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-vals='js:{Target: localStorage.getItem("red_target")||"10.10.20.15", ExploitName:"metasploit"}' hx-target="#agent-result" hx-swap="innerHTML">TRIGGER EXPLOIT</button>
             </div>
         </div>
+
         <div class="agent-panel violet">
-            <div class="panel-title">VIOLET AGENT</div>
-            <div class="panel-actions">
-                <button class="agent-btn" hx-get="http://localhost:5076/api/Orchestration/agents/violet/labs" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-target="#labs-result" hx-swap="innerHTML">LIST LABS</button>
-                <button class="agent-btn" hx-post="http://localhost:5076/api/Orchestration/agents/violet/cleanup" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-target="#agent-result" hx-swap="innerHTML">CLEANUP EXPIRED</button>
+            <div class="card-header"><h3>VIOLET AGENT</h3><span class="badge badge-violet">LABS</span></div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <button class="agent-btn" hx-get="/api/Orchestration/agents/violet/labs" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-target="#labs-result" hx-swap="innerHTML">LIST LABS</button>
+                <button class="agent-btn" hx-post="/api/Orchestration/agents/violet/cleanup" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-target="#agent-result" hx-swap="innerHTML">CLEANUP EXPIRED</button>
             </div>
         </div>
+
         <div class="agent-panel silver">
-            <div class="panel-title">SILVER AGENT</div>
-            <div class="panel-actions">
-                <button class="agent-btn" hx-post="http://localhost:5076/api/Orchestration/agents/silver/context" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-vals='js:{Context:"security-analysis"}' hx-target="#agent-result" hx-swap="innerHTML">SET CONTEXT</button>
+            <div class="card-header"><h3>SILVER AGENT</h3><span class="badge badge-silver">AI</span></div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <button class="agent-btn" hx-post="/api/Orchestration/agents/silver/context" hx-headers='js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}' hx-vals='js:{Context:"security-analysis"}' hx-target="#agent-result" hx-swap="innerHTML">SET CONTEXT</button>
             </div>
         </div>
     </div>
 
-    <div id="agent-result" style="margin-top:12px;font-size:10px;max-height:200px;overflow-y:auto;"></div>
-
-    <div class="section-title" style="margin-top:16px;">VIOLET LABS</div>
-    <div id="labs-result" class="labs-list">
-        <div style="text-align:center;padding:10px;color:var(--text-muted);">Click LIST LABS to load.</div>
-    </div>
+    <div id="agent-result" style="margin-top:12px;"></div>
+    <div id="labs-result" style="margin-top:12px;"></div>
 </div>
 
 <script>
 (function() {
-    var API = window.__API_SILVER__ || 'http://localhost:5076';
-    function token() { return localStorage.getItem('abitat_token')||''; }
-    function headers() { return { 'Authorization':'Bearer '+token() }; }
-
-    fetch(API + '/api/Orchestration/status', { headers:headers() })
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-            var a = d.agents||{};
-            document.getElementById('a-blue').textContent = a.blue||'--';
-            document.getElementById('a-red').textContent = a.red||'--';
-            document.getElementById('a-violet').textContent = a.violet||'--';
-            document.getElementById('a-silver').textContent = a.silver||'--';
-        }).catch(function(){});
-
-    window.getRedScanResult = function() {
-        var id = document.getElementById('scan-id-input').value.trim();
-        if (!id) return;
-        var result = document.getElementById('agent-result');
-        result.innerHTML = '<span style="color:var(--accent-orange);">Fetching scan '+id+'...</span>';
-        fetch(API + '/api/Orchestration/agents/red/scans/' + id, { headers:headers() })
-            .then(function(r) { return r.json(); })
-            .then(function(d) { result.innerHTML = '<pre style="color:var(--accent-green);font-size:10px;">'+JSON.stringify(d,null,2)+'</pre>'; })
-            .catch(function() { result.innerHTML = '<pre style="color:var(--accent-red);">Failed.</pre>'; });
-    };
-
-    document.body.addEventListener('htmx:afterRequest', function(evt) {
-        if (evt.detail.target.id === 'labs-result') {
-            try {
-                var d = JSON.parse(evt.detail.xhr.responseText);
-                var labs = d.labs||[];
-                if (labs.length>0) {
-                    evt.detail.target.innerHTML = labs.map(function(l) {
-                        return '<div class="lab-row"><span class="lab-name">'+(l.name||l.labId)+'</span><span class="lab-status active">'+(l.status||'ACTIVE')+'</span><button class="btn-delete" hx-delete="'+API+'/api/Orchestration/agents/violet/labs/'+l.labId+'" hx-headers=\'js:{"Authorization":"Bearer "+localStorage.getItem("abitat_token")}\' hx-target="#labs-result" hx-swap="innerHTML">DESTROY</button></div>';
-                    }).join('');
-                    htmx.process(evt.detail.target);
-                } else { evt.detail.target.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">No labs.</div>'; }
-            } catch(e) {}
-        }
-    });
+    var API = window.__API_SILVER__ || (window.location.hostname === 'localhost' ? 'http://localhost:10004' : '');
 })();
 </script>
